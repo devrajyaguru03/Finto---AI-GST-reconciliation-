@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: finto-api
+    runtime: docker
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    plan: free
+    envVars:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_KEY
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GROQ_MODEL
+        value: llama-3.3-70b-versatile
+      - key: CORS_ORIGINS
+        value: '["http://localhost:3000","https://finto-ai-gst-reconciliation.vercel.app"]'
+      - key: DEBUG
+        value: "false"
