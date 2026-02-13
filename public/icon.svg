@@ -1,0 +1,31 @@
+<svg width="180" height="180" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="faviconGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="40%" stop-color="#0ea5e9" />
+      <stop offset="100%" stop-color="#2563eb" />
+    </linearGradient>
+  </defs>
+
+  <!-- Rounded square background -->
+  <rect x="4" y="4" width="112" height="112" rx="26" fill="url(#faviconGrad)" />
+
+  <!-- White F + ₹ monogram -->
+  <!-- Vertical stem -->
+  <rect x="26" y="22" width="12" height="76" rx="6" fill="white" />
+
+  <!-- Top bar -->
+  <rect x="26" y="22" width="48" height="10" rx="5" fill="white" />
+
+  <!-- Middle crossbar -->
+  <rect x="26" y="48" width="38" height="9" rx="4.5" fill="white" />
+
+  <!-- ₹ curved hook -->
+  <path
+    d="M74 32C86 32 92 44 86 58C80 72 60 84 44 92"
+    stroke="white"
+    stroke-width="10"
+    stroke-linecap="round"
+    fill="none"
+  />
+</svg>
