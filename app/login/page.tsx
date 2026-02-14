@@ -54,7 +54,7 @@ export default function LoginPage() {
         return;
       }
 
-      setSuccess("OTP sent! Check backend console for the code.");
+      setSuccess("OTP sent! Please check your email inbox.");
       setStep("otp");
       // Focus first OTP input
       setTimeout(() => otpRefs.current[0]?.focus(), 100);
@@ -259,7 +259,7 @@ export default function LoginPage() {
               </Button>
 
               <p className="text-xs text-center text-muted-foreground">
-                💡 <strong>Dev mode:</strong> OTP will be printed in the backend terminal
+                🔒 A 6-digit verification code will be sent to your email by <strong>Team Finto</strong>
               </p>
             </form>
           ) : (
@@ -322,7 +322,7 @@ export default function LoginPage() {
               </div>
 
               <p className="text-xs text-center text-muted-foreground">
-                💡 Check the backend terminal for your OTP code
+                📧 Didn't receive the email? Check your spam folder or click Resend OTP
               </p>
             </div>
           )}

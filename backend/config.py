@@ -28,6 +28,14 @@ class Settings(BaseSettings):
     # Redis (for Celery)
     redis_url: str = "redis://localhost:6379/0"
     
+    # Email / SMTP
+    smtp_host: str = "smtp.gmail.com"
+    smtp_port: int = 587
+    smtp_username: str = ""
+    smtp_password: str = ""
+    smtp_from_email: str = ""
+    smtp_from_name: str = "Finto"
+    
     # CORS
     cors_origins: list[str] = ["http://localhost:3000", "https://finto-ai-gst-reconciliation.vercel.app"]
     

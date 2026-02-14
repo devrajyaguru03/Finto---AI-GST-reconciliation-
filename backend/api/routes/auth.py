@@ -11,6 +11,7 @@ from pydantic import BaseModel
 from typing import Optional, Dict
 
 from core.db import get_db
+from core.email_service import send_otp_email
 
 router = APIRouter()
 
@@ -47,7 +48,7 @@ def _log_activity(action: str, email: str = None, details: dict = None, ip: str 
 
 @router.post("/send-otp")
 async def send_otp(data: SendOTPRequest, request: Request):
-    """Send OTP to email — persists to Supabase"""
+    """Send OTP to email — persists to Supabase and emails the user"""
     db = get_db()
     email = data.email.strip().lower()
     if not email or "@" not in email:
@@ -67,18 +68,22 @@ async def send_otp(data: SendOTPRequest, request: Request):
         "expires_at": expires_at.isoformat()
     }).execute()
 
-    # Print to console (dev mode)
+    # Send OTP via email (falls back to console if SMTP not configured)
+    email_sent = send_otp_email(email, otp)
+
+    # Always print to console as backup
     print("\n" + "=" * 50)
     print(f"📧 OTP for {email}: {otp}")
+    print(f"✉️  Email sent: {'Yes' if email_sent else 'No (SMTP not configured)'}")
     print(f"⏰ Expires in {OTP_EXPIRY_SECONDS // 60} minutes")
     print("=" * 50 + "\n")
 
-    _log_activity("otp_sent", email, {"otp_code": otp}, client_ip)
+    _log_activity("otp_sent", email, {"otp_code": otp, "email_sent": email_sent}, client_ip)
 
     return {
         "success": True,
         "message": f"OTP sent to {email}",
-        "dev_hint": "Check the backend console for the OTP code"
+        "email_sent": email_sent
     }
 
 
