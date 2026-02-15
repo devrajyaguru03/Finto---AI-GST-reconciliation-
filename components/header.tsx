@@ -21,8 +21,8 @@ export function Header() {
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled
-          ? "glass border-b border-border/50 shadow-lg shadow-primary/5"
-          : "bg-transparent"
+        ? "glass border-b border-border/50 shadow-lg shadow-primary/5"
+        : "bg-transparent"
         }`}
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -36,9 +36,8 @@ export function Header() {
             <span className="text-xl font-bold gradient-text">Finto</span>
           </Link>
 
-          {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-8">
-            {["Features", "How It Works", "Pricing"].map((item) => (
+            {["Features", "How It Works"].map((item) => (
               <Link
                 key={item}
                 href={`#${item.toLowerCase().replace(/\s+/g, "-")}`}
@@ -58,15 +57,6 @@ export function Header() {
                 className="text-muted-foreground hover:text-foreground"
               >
                 Log In
-              </Button>
-            </Link>
-            <Link href="/login">
-              <Button
-                size="sm"
-                className="gradient-bg btn-shine text-white border-0 px-6"
-              >
-                <Sparkles className="w-4 h-4 mr-2" />
-                Get Started
               </Button>
             </Link>
           </div>
@@ -101,7 +91,7 @@ export function Header() {
           }`}
       >
         <div className="glass-strong border-t border-border/50 px-4 py-6 space-y-4">
-          {["Features", "How It Works", "Pricing"].map((item, index) => (
+          {["Features", "How It Works"].map((item, index) => (
             <Link
               key={item}
               href={`#${item.toLowerCase().replace(/\s+/g, "-")}`}
@@ -115,12 +105,6 @@ export function Header() {
             <Link href="/login">
               <Button variant="outline" className="w-full justify-center">
                 Log In
-              </Button>
-            </Link>
-            <Link href="/login">
-              <Button className="w-full gradient-bg text-white border-0">
-                <Sparkles className="w-4 h-4 mr-2" />
-                Get Started
               </Button>
             </Link>
           </div>

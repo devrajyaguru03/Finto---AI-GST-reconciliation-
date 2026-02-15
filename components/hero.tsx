@@ -34,17 +34,6 @@ export function Hero() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-4xl mx-auto">
           {/* Animated Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass border border-primary/20 text-sm font-medium mb-8 fade-in-up shimmer">
-            <span className="flex h-2 w-2 relative">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
-            </span>
-            <span className="text-muted-foreground">
-              Trusted by{" "}
-              <span className="text-foreground font-semibold">500+</span>{" "}
-              Chartered Accountants
-            </span>
-          </div>
 
           {/* Headline */}
           <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold text-foreground leading-[1.1] tracking-tight fade-in-up stagger-1">
@@ -63,35 +52,9 @@ export function Hero() {
 
           {/* CTAs */}
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 fade-in-up stagger-3">
-            <Button
-              size="lg"
-              className="gradient-bg btn-shine text-white border-0 text-base px-8 py-6 h-14 rounded-xl shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 transition-all duration-300"
-            >
-              Start Free Trial
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
-            <Button
-              variant="outline"
-              size="lg"
-              className="group text-base px-8 py-6 h-14 rounded-xl bg-background/50 backdrop-blur hover:bg-background/80 transition-all duration-300"
-            >
-              <Play className="mr-2 h-4 w-4 text-primary group-hover:scale-110 transition-transform" />
-              Watch Demo
-            </Button>
-          </div>
-
-          {/* Trust indicators */}
-          <div className="mt-10 flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground fade-in-up stagger-4">
-            {[
-              "No credit card required",
-              "Setup in 2 minutes",
-              "Works with Tally, Zoho & more",
-            ].map((item, index) => (
-              <div key={index} className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-primary" />
-                <span>{item}</span>
-              </div>
-            ))}
+            <div className="inline-block px-6 py-3 rounded-xl bg-primary/10 text-primary border border-primary/20 font-medium">
+              Educational Project
+            </div>
           </div>
         </div>
 
@@ -196,8 +159,8 @@ function StatCard({
   return (
     <div
       className={`relative rounded-xl p-4 transition-all duration-300 hover-lift ${highlight
-          ? "bg-primary/10 border border-primary/20"
-          : "bg-muted/30 border border-transparent hover:border-border/50"
+        ? "bg-primary/10 border border-primary/20"
+        : "bg-muted/30 border border-transparent hover:border-border/50"
         }`}
     >
       <div className="flex items-center justify-between">
@@ -240,8 +203,8 @@ function WorkflowStep({
   return (
     <div
       className={`group relative rounded-xl p-5 border transition-all duration-300 hover-lift ${active
-          ? "border-primary/50 bg-primary/5 glow-sm"
-          : "border-border/50 bg-muted/20 hover:border-primary/30 hover:bg-primary/5"
+        ? "border-primary/50 bg-primary/5 glow-sm"
+        : "border-border/50 bg-muted/20 hover:border-primary/30 hover:bg-primary/5"
         }`}
     >
       {/* Connector Line (hidden on mobile and last item) */}
@@ -250,16 +213,16 @@ function WorkflowStep({
       <div className="flex items-center gap-3 mb-3">
         <div
           className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 ${active
-              ? "gradient-bg text-white shadow-lg shadow-primary/25"
-              : "bg-muted text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary"
+            ? "gradient-bg text-white shadow-lg shadow-primary/25"
+            : "bg-muted text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary"
             }`}
         >
           {icon}
         </div>
         <span
           className={`text-xs font-semibold px-2 py-1 rounded-full ${active
-              ? "bg-primary/20 text-primary"
-              : "bg-muted text-muted-foreground"
+            ? "bg-primary/20 text-primary"
+            : "bg-muted text-muted-foreground"
             }`}
         >
           Step {step}
