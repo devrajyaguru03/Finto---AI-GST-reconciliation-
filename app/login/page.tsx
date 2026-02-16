@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FintoLogoIcon } from "@/components/finto-logo";
 import { Mail, ArrowRight, Shield, Zap, Users, Loader2, CheckCircle } from "lucide-react";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { useAuth } from "@/lib/auth-context";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
@@ -20,7 +21,7 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
+
 
   // redirect if already logged in
   useEffect(() => {
@@ -57,39 +58,12 @@ export default function LoginPage() {
       setSuccess("OTP sent! Please check your email inbox.");
       setStep("otp");
       // Focus first OTP input
-      setTimeout(() => otpRefs.current[0]?.focus(), 100);
+      setSuccess("OTP sent! Please check your email inbox.");
+      setStep("otp");
     } catch (err) {
       setError("Cannot connect to backend. Make sure it's running on port 8000.");
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleOTPChange = (index: number, value: string) => {
-    if (value.length > 1) value = value.slice(-1);
-    if (value && !/^\d$/.test(value)) return;
-
-    const newOtp = [...otp];
-    newOtp[index] = value;
-    setOtp(newOtp);
-
-    // Auto-focus next input
-    if (value && index < 5) {
-      otpRefs.current[index + 1]?.focus();
-    }
-
-    // Auto-submit when all 6 digits entered
-    if (value && index === 5) {
-      const fullOtp = newOtp.join("");
-      if (fullOtp.length === 6) {
-        handleVerifyOTP(fullOtp);
-      }
-    }
-  };
-
-  const handleOTPKeyDown = (index: number, e: React.KeyboardEvent) => {
-    if (e.key === "Backspace" && !otp[index] && index > 0) {
-      otpRefs.current[index - 1]?.focus();
     }
   };
 
@@ -124,7 +98,11 @@ export default function LoginPage() {
       if (!res.ok) {
         setError(data.detail || "Invalid OTP");
         setOtp(["", "", "", "", "", ""]);
-        otpRefs.current[0]?.focus();
+        if (!res.ok) {
+          setError(data.detail || "Invalid OTP");
+          setOtp(["", "", "", "", "", ""]);
+          return;
+        }
         return;
       }
 
@@ -267,21 +245,26 @@ export default function LoginPage() {
             <div className="space-y-6">
               <div className="space-y-3">
                 <Label className="text-sm font-medium">Verification Code</Label>
-                <div className="flex gap-3 justify-center" onPaste={handleOTPPaste}>
-                  {otp.map((digit, index) => (
-                    <input
-                      key={index}
-                      ref={(el) => { otpRefs.current[index] = el; }}
-                      type="text"
-                      inputMode="numeric"
-                      maxLength={1}
-                      value={digit}
-                      onChange={(e) => handleOTPChange(index, e.target.value)}
-                      onKeyDown={(e) => handleOTPKeyDown(index, e)}
-                      className="w-12 h-14 text-center text-2xl font-bold rounded-lg border-2 border-border bg-background focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-                      autoFocus={index === 0}
-                    />
-                  ))}
+                <div className="flex justify-center" onPaste={handleOTPPaste}>
+                  <InputOTP
+                    maxLength={6}
+                    value={otp.join("")}
+                    onChange={(value) => {
+                      setOtp(value.split(""));
+                      if (value.length === 6) {
+                        handleVerifyOTP(value);
+                      }
+                    }}
+                  >
+                    <InputOTPGroup>
+                      <InputOTPSlot index={0} />
+                      <InputOTPSlot index={1} />
+                      <InputOTPSlot index={2} />
+                      <InputOTPSlot index={3} />
+                      <InputOTPSlot index={4} />
+                      <InputOTPSlot index={5} />
+                    </InputOTPGroup>
+                  </InputOTP>
                 </div>
               </div>
 

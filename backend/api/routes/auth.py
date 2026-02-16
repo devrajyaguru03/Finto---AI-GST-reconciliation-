@@ -80,10 +80,12 @@ async def send_otp(data: SendOTPRequest, request: Request):
 
     _log_activity("otp_sent", email, {"otp_code": otp, "email_sent": email_sent}, client_ip)
 
+    if not email_sent:
+         raise HTTPException(status_code=500, detail="Failed to send email. Please contact support or try again later.")
+
     return {
         "success": True,
-        "message": f"OTP sent to {email}",
-        "email_sent": email_sent
+        "message": f"OTP sent to {email}"
     }
 
 
