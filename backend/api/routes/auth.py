@@ -11,7 +11,19 @@ from pydantic import BaseModel
 from typing import Optional, Dict
 
 from core.db import get_db
+from core.db import get_db
 from core.email_service import send_otp_email
+from passlib.context import CryptContext
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
+def verify_password(plain_password, hashed_password):
+    return pwd_context.verify(plain_password, hashed_password)
+
+
+def get_password_hash(password):
+    return pwd_context.hash(password)
 
 router = APIRouter()
 
@@ -25,6 +37,21 @@ class SendOTPRequest(BaseModel):
 class VerifyOTPRequest(BaseModel):
     email: str
     otp: str
+
+
+class AdminLoginRequest(BaseModel):
+    email: str
+    password: str
+
+
+class SignupRequest(BaseModel):
+    email: str
+    password: str
+
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
 
 
 class AuthResponse(BaseModel):
@@ -221,3 +248,161 @@ async def logout(authorization: Optional[str] = Header(None), request: Request =
         _log_activity("logout", email, {}, client_ip)
 
     return {"success": True, "message": "Logged out"}
+
+
+@router.post("/admin-login", response_model=AuthResponse)
+async def admin_login(data: AdminLoginRequest, request: Request):
+    """Admin login with password (hardcoded for specific user)"""
+    db = get_db()
+    email = data.email.strip().lower()
+    password = data.password.strip()
+    client_ip = request.client.host if request.client else None
+
+    # Hardcoded check as requested
+    if email == "testuserc3x@gmail.com" and password == "Rajyaguru@1553":
+        # Create/Update user with admin role
+        user_result = db.table("users").select("*").eq("email", email).execute()
+        
+        if user_result.data:
+            user = user_result.data[0]
+            # Ensure role is admin
+            if user["role"] != "admin":
+                 db.table("users").update({"role": "admin"}).eq("id", user["id"]).execute()
+            
+            # Update login stats
+            db.table("users").update({
+                "login_count": user["login_count"] + 1,
+                "last_login_at": datetime.now(timezone.utc).isoformat(),
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }).eq("id", user["id"]).execute()
+            user_id = user["id"]
+        else:
+            # Create new admin user
+            new_user = db.table("users").insert({
+                "email": email,
+                "role": "admin",
+                "login_count": 1,
+                "last_login_at": datetime.now(timezone.utc).isoformat()
+            }).execute()
+            user_id = new_user.data[0]["id"]
+
+        # Create session
+        token = str(uuid.uuid4())
+        db.table("sessions").insert({
+            "user_id": user_id,
+            "token": token,
+            "email": email,
+            "ip_address": client_ip,
+            "is_active": True,
+            "expires_at": (datetime.now(timezone.utc) + timedelta(days=7)).isoformat()
+        }).execute()
+
+        _log_activity("login", email, {"type": "admin_password"}, client_ip)
+
+        return AuthResponse(token=token, email=email)
+
+    # Invalid credentials
+    _log_activity("login_failed", email, {"reason": "invalid_admin_creds"}, client_ip)
+    raise HTTPException(status_code=401, detail="Invalid email or password")
+
+
+@router.post("/signup", response_model=AuthResponse)
+async def signup(data: SignupRequest, request: Request):
+    """Register a new user with password"""
+    db = get_db()
+    email = data.email.strip().lower()
+    password = data.password.strip()
+    client_ip = request.client.host if request.client else None
+
+    if not email or "@" not in email:
+        raise HTTPException(status_code=400, detail="Invalid email address")
+    if len(password) < 6:
+        raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
+
+    # Check if user exists
+    user_result = db.table("users").select("*").eq("email", email).execute()
+    if user_result.data:
+        # Check if they already have a password
+        if user_result.data[0].get("password_hash"):
+             raise HTTPException(status_code=400, detail="Email already registered. Please login.")
+        # If no password (OTP user), we could allow "claiming" the account, but for now let's just update
+        # user = user_result.data[0]
+        # But safest is to say "User exists" to prevent enumeration or logic issues.
+        # Actually, for better UX, if they are an OTP user, maybe we let them set a password?
+        # Let's stick to "User already exists" for simplicity.
+        raise HTTPException(status_code=400, detail="User already registered with this email.")
+
+    hashed_password = get_password_hash(password)
+
+    # Create user
+    new_user = db.table("users").insert({
+        "email": email,
+        "password_hash": hashed_password,
+        "role": "user",
+        "login_count": 1,
+        "last_login_at": datetime.now(timezone.utc).isoformat()
+    }).execute()
+    user_id = new_user.data[0]["id"]
+
+    # Create session
+    token = str(uuid.uuid4())
+    db.table("sessions").insert({
+        "user_id": user_id,
+        "token": token,
+        "email": email,
+        "ip_address": client_ip,
+        "is_active": True,
+        "expires_at": (datetime.now(timezone.utc) + timedelta(days=7)).isoformat()
+    }).execute()
+
+    _log_activity("signup", email, {}, client_ip)
+    _log_activity("login", email, {"type": "password_signup"}, client_ip)
+
+    return AuthResponse(token=token, email=email)
+
+
+@router.post("/login-password", response_model=AuthResponse)
+async def login_password(data: LoginRequest, request: Request):
+    """Login with email and password"""
+    db = get_db()
+    email = data.email.strip().lower()
+    password = data.password.strip()
+    client_ip = request.client.host if request.client else None
+
+    # Fetch user
+    user_result = db.table("users").select("*").eq("email", email).execute()
+    if not user_result.data:
+        # Use roughly same time as verification to prevent timing attacks (basic mitigation)
+        verify_password("dummy", "$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxwKc.60rScphF.1kFBBeXhm5jwr6")
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+    
+    user = user_result.data[0]
+    
+    if not user.get("password_hash"):
+         raise HTTPException(status_code=401, detail="Please login via OTP (no password set)")
+
+    if not verify_password(password, user["password_hash"]):
+        _log_activity("login_failed", email, {"reason": "invalid_password"}, client_ip)
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+
+    # Login success
+    db.table("users").update({
+        "login_count": user["login_count"] + 1,
+        "last_login_at": datetime.now(timezone.utc).isoformat(),
+        "updated_at": datetime.now(timezone.utc).isoformat()
+    }).eq("id", user["id"]).execute()
+
+    # Create session
+    token = str(uuid.uuid4())
+    db.table("sessions").insert({
+        "user_id": user["id"],
+        "token": token,
+        "email": email,
+        "ip_address": client_ip,
+        "is_active": True,
+        "expires_at": (datetime.now(timezone.utc) + timedelta(days=7)).isoformat()
+    }).execute()
+
+    _log_activity("login", email, {"type": "password"}, client_ip)
+
+    return AuthResponse(token=token, email=email)

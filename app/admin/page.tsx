@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 
 const API = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
@@ -58,6 +59,7 @@ interface ReconciliationRun {
 type TabType = "activity" | "otps" | "users" | "reconciliations" | "sessions";
 
 export default function AdminDashboard() {
+    const router = useRouter();
     const [stats, setStats] = useState<DashboardStats | null>(null);
     const [activities, setActivities] = useState<ActivityLog[]>([]);
     const [otps, setOTPs] = useState<OTPLog[]>([]);
@@ -81,6 +83,11 @@ export default function AdminDashboard() {
                 fetch(`${API}/api/admin/users?limit=50`, { headers }),
                 fetch(`${API}/api/admin/reconciliations?limit=50`, { headers }),
             ]);
+
+            if (statsRes.status === 401) {
+                router.replace("/admin/login");
+                return;
+            }
 
             if (statsRes.ok) setStats(await statsRes.json());
             if (activityRes.ok) {
@@ -194,8 +201,8 @@ export default function AdminDashboard() {
                     <button
                         onClick={() => setAutoRefresh(!autoRefresh)}
                         className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${autoRefresh
-                                ? "bg-green-500/10 text-green-400 border-green-500/30"
-                                : "bg-gray-800 text-gray-400 border-gray-700"
+                            ? "bg-green-500/10 text-green-400 border-green-500/30"
+                            : "bg-gray-800 text-gray-400 border-gray-700"
                             }`}
                     >
                         {autoRefresh ? "● Live" : "○ Paused"}
@@ -239,8 +246,8 @@ export default function AdminDashboard() {
                         key={tab.key}
                         onClick={() => setActiveTab(tab.key)}
                         className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${activeTab === tab.key
-                                ? "bg-blue-600/20 text-blue-400 border border-blue-500/30"
-                                : "text-gray-500 hover:text-gray-300 border border-transparent"
+                            ? "bg-blue-600/20 text-blue-400 border border-blue-500/30"
+                            : "text-gray-500 hover:text-gray-300 border border-transparent"
                             }`}
                     >
                         <span>{tab.icon}</span>
@@ -370,8 +377,8 @@ export default function AdminDashboard() {
                                             <td className="px-4 py-3 text-gray-300 font-mono text-xs">{u.email}</td>
                                             <td className="px-4 py-3">
                                                 <span className={`px-2 py-0.5 text-[11px] font-medium rounded-full ${u.role === "admin"
-                                                        ? "bg-red-500/20 text-red-400 border border-red-500/30"
-                                                        : "bg-blue-500/20 text-blue-400 border border-blue-500/30"
+                                                    ? "bg-red-500/20 text-red-400 border border-red-500/30"
+                                                    : "bg-blue-500/20 text-blue-400 border border-blue-500/30"
                                                     }`}>
                                                     {u.role}
                                                 </span>

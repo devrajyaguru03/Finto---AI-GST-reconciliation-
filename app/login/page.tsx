@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -239,6 +240,12 @@ export default function LoginPage() {
               <p className="text-xs text-center text-muted-foreground">
                 🔒 A 6-digit verification code will be sent to your email by <strong>Team Finto</strong>
               </p>
+              <div className="mt-6 text-center text-sm">
+                <span className="text-muted-foreground">Don't have an account? </span>
+                <Link href="/signup" className="font-medium text-primary hover:underline">
+                  Sign up
+                </Link>
+              </div>
             </form>
           ) : (
             /* Step 2: OTP Verification */

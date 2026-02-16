@@ -37,7 +37,11 @@ class Settings(BaseSettings):
     smtp_from_name: str = "Finto"
     
     # CORS
-    cors_origins: list[str] = ["http://localhost:3000", "https://finto-ai-gst-reconciliation.vercel.app"]
+    cors_origins: list[str] = [
+        "http://localhost:3000", 
+        "http://127.0.0.1:3000",
+        "https://finto-ai-gst-reconciliation.vercel.app"
+    ]
     
     class Config:
         env_file = ".env"
