@@ -14,8 +14,8 @@ const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:800
 export default function AdminLoginPage() {
     const router = useRouter();
     const { login, isAuthenticated } = useAuth();
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
+    const [email, setEmail] = useState("testuserc3x@gmail.com");
+    const [password, setPassword] = useState("Rajyaguru@2004");
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState("");
 
