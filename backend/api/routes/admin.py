@@ -181,3 +181,27 @@ async def get_sessions(
         "data": result.data,
         "total": result.count or 0
     }
+
+
+@router.delete("/users/{user_id}")
+async def delete_user(
+    user_id: str,
+    authorization: Optional[str] = Header(None)
+):
+    """Delete a user and their data"""
+    requester_email = _require_admin(authorization)
+    db = get_db()
+
+    # Prevent self-deletion
+    user_to_delete = db.table("users").select("email").eq("id", user_id).execute()
+    if user_to_delete.data and user_to_delete.data[0]["email"] == requester_email:
+        raise HTTPException(status_code=400, detail="Cannot delete your own admin account")
+
+    # Delete related data first (though cascade might handle it, let's be safe)
+    db.table("sessions").delete().eq("user_id", user_id).execute()
+    db.table("otp_logs").delete().eq("email", user_to_delete.data[0]["email"]).execute() if user_to_delete.data else None
+    
+    # Delete user
+    db.table("users").delete().eq("id", user_id).execute()
+
+    return {"success": True, "message": "User deleted"}

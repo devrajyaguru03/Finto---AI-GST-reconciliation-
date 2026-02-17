@@ -2,13 +2,14 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { Trash2, Shield, AlertTriangle } from "lucide-react";
 
 const API = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
 interface DashboardStats {
     total_users: number;
     active_sessions: number;
-    otps_today: number;
+    // otps_today: number; // Removed as requested
     total_reconciliations: number;
     activity_today: number;
 }
@@ -22,17 +23,6 @@ interface ActivityLog {
     created_at: string;
 }
 
-interface OTPLog {
-    id: string;
-    email: string;
-    otp_code: string;
-    status: string;
-    ip_address: string | null;
-    expires_at: string;
-    verified_at: string | null;
-    created_at: string;
-}
-
 interface User {
     id: string;
     email: string;
@@ -41,6 +31,7 @@ interface User {
     login_count: number;
     last_login_at: string | null;
     created_at: string;
+    password_hash: string | null; // Added to show if password is set
 }
 
 interface ReconciliationRun {
@@ -56,18 +47,18 @@ interface ReconciliationRun {
     created_at: string;
 }
 
-type TabType = "activity" | "otps" | "users" | "reconciliations" | "sessions";
+type TabType = "activity" | "users" | "reconciliations" | "sessions";
 
 export default function AdminDashboard() {
     const router = useRouter();
     const [stats, setStats] = useState<DashboardStats | null>(null);
     const [activities, setActivities] = useState<ActivityLog[]>([]);
-    const [otps, setOTPs] = useState<OTPLog[]>([]);
     const [users, setUsers] = useState<User[]>([]);
     const [reconciliations, setReconciliations] = useState<ReconciliationRun[]>([]);
     const [activeTab, setActiveTab] = useState<TabType>("activity");
     const [loading, setLoading] = useState(true);
     const [autoRefresh, setAutoRefresh] = useState(true);
+    const [deletingUser, setDeletingUser] = useState<string | null>(null);
 
     const getToken = () => localStorage.getItem("auth_token") || "";
 
@@ -76,10 +67,9 @@ export default function AdminDashboard() {
         const headers = { Authorization: `Bearer ${token}` };
 
         try {
-            const [statsRes, activityRes, otpRes, usersRes, reconRes] = await Promise.all([
+            const [statsRes, activityRes, usersRes, reconRes] = await Promise.all([
                 fetch(`${API}/api/admin/dashboard`, { headers }),
                 fetch(`${API}/api/admin/activity?limit=50`, { headers }),
-                fetch(`${API}/api/admin/otps?limit=50`, { headers }),
                 fetch(`${API}/api/admin/users?limit=50`, { headers }),
                 fetch(`${API}/api/admin/reconciliations?limit=50`, { headers }),
             ]);
@@ -94,10 +84,6 @@ export default function AdminDashboard() {
                 const d = await activityRes.json();
                 setActivities(d.data || []);
             }
-            if (otpRes.ok) {
-                const d = await otpRes.json();
-                setOTPs(d.data || []);
-            }
             if (usersRes.ok) {
                 const d = await usersRes.json();
                 setUsers(d.data || []);
@@ -111,7 +97,7 @@ export default function AdminDashboard() {
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [router]);
 
     useEffect(() => {
         fetchData();
@@ -122,6 +108,31 @@ export default function AdminDashboard() {
         const interval = setInterval(fetchData, 10000); // 10s
         return () => clearInterval(interval);
     }, [autoRefresh, fetchData]);
+
+    const handleDeleteUser = async (userId: string) => {
+        if (!confirm("Are you sure you want to delete this user? This action cannot be undone.")) return;
+
+        setDeletingUser(userId);
+        const token = getToken();
+        try {
+            const res = await fetch(`${API}/api/admin/users/${userId}`, {
+                method: "DELETE",
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            if (res.ok) {
+                setUsers(users.filter(u => u.id !== userId));
+                fetchData(); // Refresh stats
+            } else {
+                alert("Failed to delete user");
+            }
+        } catch (error) {
+            console.error("Delete error:", error);
+            alert("Error deleting user");
+        } finally {
+            setDeletingUser(null);
+        }
+    };
 
     const formatTime = (iso: string) => {
         const d = new Date(iso);
@@ -146,8 +157,7 @@ export default function AdminDashboard() {
         const colors: Record<string, string> = {
             login: "bg-green-500/20 text-green-400 border-green-500/30",
             logout: "bg-gray-500/20 text-gray-400 border-gray-500/30",
-            otp_sent: "bg-blue-500/20 text-blue-400 border-blue-500/30",
-            otp_verify_failed: "bg-red-500/20 text-red-400 border-red-500/30",
+            // otp_sent: "bg-blue-500/20 text-blue-400 border-blue-500/30", // Removed
             reconciliation: "bg-purple-500/20 text-purple-400 border-purple-500/30",
             email_generated: "bg-amber-500/20 text-amber-400 border-amber-500/30",
         };
@@ -155,20 +165,6 @@ export default function AdminDashboard() {
         return (
             <span className={`px-2 py-0.5 text-[11px] font-medium rounded-full border ${cls}`}>
                 {action.replace(/_/g, " ")}
-            </span>
-        );
-    };
-
-    const statusBadge = (status: string) => {
-        const colors: Record<string, string> = {
-            sent: "bg-blue-500/20 text-blue-400",
-            verified: "bg-green-500/20 text-green-400",
-            expired: "bg-gray-500/20 text-gray-400",
-            failed: "bg-red-500/20 text-red-400",
-        };
-        return (
-            <span className={`px-2 py-0.5 text-[11px] font-medium rounded-full ${colors[status] || "bg-gray-500/20 text-gray-400"}`}>
-                {status}
             </span>
         );
     };
@@ -183,7 +179,6 @@ export default function AdminDashboard() {
 
     const tabs: { key: TabType; label: string; icon: string; count?: number }[] = [
         { key: "activity", label: "Activity Feed", icon: "📋", count: activities.length },
-        { key: "otps", label: "OTP Logs", icon: "🔑", count: otps.length },
         { key: "users", label: "Users", icon: "👥", count: users.length },
         { key: "reconciliations", label: "Reconciliations", icon: "📊", count: reconciliations.length },
         { key: "sessions", label: "Sessions", icon: "🔗" },
@@ -218,11 +213,10 @@ export default function AdminDashboard() {
 
             {/* Stats Grid */}
             {stats && (
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {[
                         { label: "Total Users", value: stats.total_users, icon: "👥", color: "from-blue-600 to-blue-400" },
                         { label: "Active Sessions", value: stats.active_sessions, icon: "🔗", color: "from-green-600 to-green-400" },
-                        { label: "OTPs Today", value: stats.otps_today, icon: "🔑", color: "from-amber-600 to-amber-400" },
                         { label: "Reconciliations", value: stats.total_reconciliations, icon: "📊", color: "from-purple-600 to-purple-400" },
                         { label: "Activity Today", value: stats.activity_today, icon: "📋", color: "from-cyan-600 to-cyan-400" },
                     ].map((s) => (
@@ -304,52 +298,6 @@ export default function AdminDashboard() {
                     </div>
                 )}
 
-                {/* OTP Logs */}
-                {activeTab === "otps" && (
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
-                            <thead>
-                                <tr className="border-b border-white/5">
-                                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Time</th>
-                                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Email</th>
-                                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">OTP Code</th>
-                                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Status</th>
-                                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Verified At</th>
-                                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">IP</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-white/5">
-                                {otps.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={6} className="px-4 py-12 text-center text-gray-600">
-                                            No OTPs sent yet.
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    otps.map((o) => (
-                                        <tr key={o.id} className="hover:bg-white/[0.02] transition-colors">
-                                            <td className="px-4 py-3 text-gray-400 whitespace-nowrap text-xs">
-                                                {formatTimeAgo(o.created_at)}
-                                            </td>
-                                            <td className="px-4 py-3 text-gray-300 font-mono text-xs">{o.email}</td>
-                                            <td className="px-4 py-3">
-                                                <span className="font-mono text-lg font-bold tracking-[0.3em] text-amber-400 bg-amber-500/10 px-3 py-1 rounded-lg">
-                                                    {o.otp_code}
-                                                </span>
-                                            </td>
-                                            <td className="px-4 py-3">{statusBadge(o.status)}</td>
-                                            <td className="px-4 py-3 text-gray-500 text-xs">
-                                                {o.verified_at ? formatTime(o.verified_at) : "—"}
-                                            </td>
-                                            <td className="px-4 py-3 text-gray-600 font-mono text-xs">{o.ip_address || "—"}</td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
-
                 {/* Users */}
                 {activeTab === "users" && (
                     <div className="overflow-x-auto">
@@ -358,16 +306,17 @@ export default function AdminDashboard() {
                                 <tr className="border-b border-white/5">
                                     <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Email</th>
                                     <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Role</th>
+                                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Password Hash (Proof)</th>
                                     <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Status</th>
                                     <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Logins</th>
                                     <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Last Login</th>
-                                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Joined</th>
+                                    <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 uppercase">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-white/5">
                                 {users.length === 0 ? (
                                     <tr>
-                                        <td colSpan={6} className="px-4 py-12 text-center text-gray-600">
+                                        <td colSpan={7} className="px-4 py-12 text-center text-gray-600">
                                             No users registered yet.
                                         </td>
                                     </tr>
@@ -384,6 +333,14 @@ export default function AdminDashboard() {
                                                 </span>
                                             </td>
                                             <td className="px-4 py-3">
+                                                <div className="flex items-center gap-1.5" title="Password is hashed for security">
+                                                    <Shield className="w-3 h-3 text-green-500" />
+                                                    <code className="text-[10px] text-gray-500 bg-black/20 px-1.5 py-0.5 rounded font-mono max-w-[100px] truncate block">
+                                                        {u.password_hash ? u.password_hash.substring(0, 10) + "..." : "No Password"}
+                                                    </code>
+                                                </div>
+                                            </td>
+                                            <td className="px-4 py-3">
                                                 <span className={`w-2 h-2 rounded-full inline-block ${u.is_active ? "bg-green-400" : "bg-gray-600"}`} />
                                                 <span className="text-xs text-gray-400 ml-2">{u.is_active ? "Active" : "Inactive"}</span>
                                             </td>
@@ -391,7 +348,18 @@ export default function AdminDashboard() {
                                             <td className="px-4 py-3 text-gray-500 text-xs">
                                                 {u.last_login_at ? formatTimeAgo(u.last_login_at) : "Never"}
                                             </td>
-                                            <td className="px-4 py-3 text-gray-500 text-xs">{formatTime(u.created_at)}</td>
+                                            <td className="px-4 py-3 text-right">
+                                                {u.role !== "admin" && (
+                                                    <button
+                                                        onClick={() => handleDeleteUser(u.id)}
+                                                        disabled={deletingUser === u.id}
+                                                        className="text-red-400 hover:text-red-300 p-1.5 hover:bg-red-500/10 rounded transition-colors disabled:opacity-50"
+                                                        title="Delete User"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                )}
+                                            </td>
                                         </tr>
                                     ))
                                 )}

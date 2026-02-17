@@ -260,7 +260,7 @@ async def admin_login(data: AdminLoginRequest, request: Request):
     client_ip = request.client.host if request.client else None
 
     # Hardcoded check as requested
-    if email == "testuserc3x@gmail.com" and password == "Rajyaguru@2004":
+    if email == "testuserc3x@gmail.com" and password == "Finto@1553":
         # Create/Update user with admin role
         user_result = db.table("users").select("*").eq("email", email).execute()
         
