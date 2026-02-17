@@ -59,6 +59,14 @@ export function Header() {
                 Log In
               </Button>
             </Link>
+            <Link href="/signup">
+              <Button
+                size="sm"
+                className="gradient-bg text-white hover:opacity-90 btn-shine"
+              >
+                Get Start
+              </Button>
+            </Link>
           </div>
 
           {/* Mobile Menu Button */}

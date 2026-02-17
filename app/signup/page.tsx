@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FintoLogoIcon } from "@/components/finto-logo";
-import { Lock, Mail, Loader2, ArrowRight, UserPlus, CheckCircle } from "lucide-react";
+import { Lock, Mail, Loader2, ArrowRight, UserPlus, CheckCircle, Zap, Shield, Users } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import Link from "next/link";
 
@@ -71,8 +71,8 @@ export default function SignupPage() {
     };
 
     return (
-        <div className="min-h-screen flex mesh-gradient text-white">
-            {/* Left Side - Branding (Reuse from login if possible, or simplified) */}
+        <div className="min-h-screen flex mesh-gradient">
+            {/* Left Side - Branding */}
             <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden items-center justify-center">
                 <div className="absolute inset-0 gradient-bg opacity-95" />
                 <div className="relative z-10 p-12 text-white max-w-lg">
@@ -86,6 +86,35 @@ export default function SignupPage() {
                     <p className="text-lg text-white/80 mb-10 leading-relaxed">
                         Start reconciling your GST data with AI precision. Create an account to access premium features.
                     </p>
+                    <div className="space-y-5">
+                        <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center backdrop-blur-sm">
+                                <Zap className="w-5 h-5 text-white" />
+                            </div>
+                            <div>
+                                <p className="font-semibold">Instant Reconciliation</p>
+                                <p className="text-sm text-white/70">Upload 2 files, get results in seconds</p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center backdrop-blur-sm">
+                                <Shield className="w-5 h-5 text-white" />
+                            </div>
+                            <div>
+                                <p className="font-semibold">ITC Protection</p>
+                                <p className="text-sm text-white/70">Identify at-risk input tax credit instantly</p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center backdrop-blur-sm">
+                                <Users className="w-5 h-5 text-white" />
+                            </div>
+                            <div>
+                                <p className="font-semibold">Vendor Emails</p>
+                                <p className="text-sm text-white/70">Auto-generate vendor communication for discrepancies</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 {/* Background decorations */}
                 <div className="absolute top-20 -right-20 w-64 h-64 rounded-full bg-white/5 blob" />
@@ -93,7 +122,7 @@ export default function SignupPage() {
             </div>
 
             {/* Right Side - Signup Form */}
-            <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-[#0B1121] lg:bg-transparent">
+            <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
                 <div className="w-full max-w-md space-y-8">
                     {/* Mobile Logo */}
                     <div className="lg:hidden flex items-center gap-3 mb-4">
@@ -103,67 +132,68 @@ export default function SignupPage() {
 
                     <div>
                         <h2 className="text-3xl font-bold tracking-tight">Create an account</h2>
-                        <p className="text-gray-400 mt-2">
+                        <p className="text-muted-foreground mt-2">
                             Enter your details to get started
                         </p>
                     </div>
 
-                    <form onSubmit={handleSignup} className="space-y-6">
-                        {error && (
-                            <div className="bg-red-500/10 text-red-400 px-4 py-3 rounded-lg text-sm border border-red-500/20">
-                                {error}
-                            </div>
-                        )}
-                        {success && (
-                            <div className="bg-green-500/10 text-green-400 px-4 py-3 rounded-lg text-sm border border-green-500/20 flex items-center gap-2">
-                                <CheckCircle className="w-4 h-4" />
-                                {success}
-                            </div>
-                        )}
+                    {/* Error / Success Messages */}
+                    {error && (
+                        <div className="bg-destructive/10 text-destructive px-4 py-3 rounded-lg text-sm border border-destructive/20">
+                            {error}
+                        </div>
+                    )}
+                    {success && (
+                        <div className="bg-green-500/10 text-green-600 dark:text-green-400 px-4 py-3 rounded-lg text-sm border border-green-500/20 flex items-center gap-2">
+                            <CheckCircle className="w-4 h-4" />
+                            {success}
+                        </div>
+                    )}
 
+                    <form onSubmit={handleSignup} className="space-y-6">
                         <div className="space-y-2">
-                            <Label htmlFor="email" className="text-gray-300">Email Address</Label>
+                            <Label htmlFor="email" className="text-sm font-medium">Email Address</Label>
                             <div className="relative">
-                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                 <Input
                                     id="email"
                                     type="email"
                                     placeholder="you@company.com"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    className="pl-10 bg-[#1F2937] border-gray-700 text-white placeholder:text-gray-500 focus:border-blue-500 focus:ring-blue-500/20 h-10"
+                                    className="pl-10 h-12 text-base"
                                     required
                                 />
                             </div>
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="password" className="text-gray-300">Password</Label>
+                            <Label htmlFor="password" className="text-sm font-medium">Password</Label>
                             <div className="relative">
-                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                 <Input
                                     id="password"
                                     type="password"
                                     placeholder="Create a password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className="pl-10 bg-[#1F2937] border-gray-700 text-white placeholder:text-gray-500 focus:border-blue-500 focus:ring-blue-500/20 h-10"
+                                    className="pl-10 h-12 text-base"
                                     required
                                 />
                             </div>
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="confirmPassword" className="text-gray-300">Confirm Password</Label>
+                            <Label htmlFor="confirmPassword" className="text-sm font-medium">Confirm Password</Label>
                             <div className="relative">
-                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                 <Input
                                     id="confirmPassword"
                                     type="password"
                                     placeholder="Confirm your password"
                                     value={confirmPassword}
                                     onChange={(e) => setConfirmPassword(e.target.value)}
-                                    className="pl-10 bg-[#1F2937] border-gray-700 text-white placeholder:text-gray-500 focus:border-blue-500 focus:ring-blue-500/20 h-10"
+                                    className="pl-10 h-12 text-base"
                                     required
                                 />
                             </div>
@@ -171,7 +201,7 @@ export default function SignupPage() {
 
                         <Button
                             type="submit"
-                            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold py-6 shadow-lg shadow-blue-500/20 transition-all btn-shine"
+                            className="w-full h-12 text-base font-semibold gradient-bg hover:opacity-90 text-white btn-shine"
                             disabled={isLoading}
                         >
                             {isLoading ? (
@@ -186,14 +216,14 @@ export default function SignupPage() {
                                 </>
                             )}
                         </Button>
-                    </form>
 
-                    <p className="text-center text-sm text-gray-400">
-                        Already have an account?{" "}
-                        <Link href="/login" className="text-blue-400 hover:text-blue-300 font-medium transition-colors">
-                            Sign in
-                        </Link>
-                    </p>
+                        <div className="mt-6 text-center text-sm">
+                            <span className="text-muted-foreground">Already have an account? </span>
+                            <Link href="/login" className="font-medium text-primary hover:underline">
+                                Sign in
+                            </Link>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>

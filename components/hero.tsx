@@ -10,6 +10,7 @@ import {
   Play,
   Zap,
 } from "lucide-react";
+import Link from "next/link";
 
 export function Hero() {
   return (
@@ -52,7 +53,16 @@ export function Hero() {
 
           {/* CTAs */}
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 fade-in-up stagger-3">
-            <div className="inline-block px-6 py-3 rounded-xl bg-primary/10 text-primary border border-primary/20 font-medium">
+            <Link href="/signup">
+              <Button
+                size="lg"
+                className="gradient-bg text-white hover:opacity-90 text-base px-8 py-6 h-14 rounded-xl shadow-2xl shadow-primary/20 hover:-translate-y-0.5 transition-all duration-300 btn-shine group"
+              >
+                Get Started
+                <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </Link>
+            <div className="inline-block px-6 py-3 rounded-xl bg-primary/10 text-primary border border-primary/20 font-medium h-14 flex items-center">
               Educational Project
             </div>
           </div>

@@ -68,12 +68,12 @@ export function CTA() {
 
           {/* CTAs */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link href="/login">
+            <Link href="/signup">
               <Button
                 size="lg"
                 className="bg-white text-primary hover:bg-white/90 text-base px-8 py-6 h-14 rounded-xl shadow-2xl shadow-black/20 hover:-translate-y-0.5 transition-all duration-300 group"
               >
-                Start Free Trial
+                Get Start
                 <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
