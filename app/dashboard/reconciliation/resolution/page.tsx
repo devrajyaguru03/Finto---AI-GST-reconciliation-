@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { AppHeader } from "@/components/app-header";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import {
   Upload,
   AlertCircle,
@@ -13,7 +14,10 @@ import {
   CheckCircle,
   Mail,
   Loader2,
+  ArrowRight,
+  Filter,
 } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
@@ -117,6 +121,7 @@ export default function ResolutionCenterPage() {
     setEmail(null);
 
     try {
+      // Mock API call simulation first, or real backend call
       const res = await fetch(`${BACKEND_URL}/api/email/generate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -141,13 +146,18 @@ export default function ResolutionCenterPage() {
         if (data.emails && data.emails.length > 0) {
           setEmail(data.emails[0]);
         }
+      } else {
+        throw new Error("Failed to generate");
       }
     } catch (err) {
       // fallback: generate a basic template locally
+      // This is robust and ensures functionality even if backend ML service is down
       setEmail({
         to_vendor: vendor.name,
-        subject: `GST Reconciliation: ${vendor.discrepancies.length} Invoice Discrepancy(ies) — Action Required`,
-        body: `Dear ${vendor.name} Team,\n\nDuring our GST reconciliation, we identified discrepancies in ${vendor.discrepancies.length} invoice(s).\n\nPlease review and respond at your earliest convenience.\n\nBest regards,\nAccounts Team`,
+        subject: `GST Reconciliation Discrepancies - ${vendor.name} (${vendor.invoiceCount} invoices)`,
+        body: `Dear ${vendor.name} Team,\n\nWe are currently reconciling our GST records and have noted some discrepancies in the following invoices filed in GSTR-2B versus our records:\n\n` +
+          vendor.discrepancies.map(d => `- Inv #${d.invoice_no}: Difference of ${formatINR(d.difference)} (${d.discrepancy_type.replace(/_/g, ' ')})`).join('\n') +
+          `\n\nPlease verify these records and provide clarification or issue credit notes/amendments as necessary.\n\nBest regards,\nAccounts Team`,
         discrepancy_type: vendor.discrepancies[0]?.discrepancy_type || "amount_mismatch",
         invoice_count: vendor.discrepancies.length,
       });
@@ -178,22 +188,24 @@ export default function ResolutionCenterPage() {
 
   if (!hasData) {
     return (
-      <div className="flex flex-col min-h-screen">
+      <div className="flex flex-col min-h-screen bg-muted/20">
         <AppHeader title="Resolution Center" />
-        <div className="flex-1 flex items-center justify-center p-6">
-          <div className="text-center max-w-md">
-            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-              <Upload className="h-8 w-8 text-primary" />
+        <div className="flex-1 flex flex-col items-center justify-center p-6 gap-6">
+          <div className="flex flex-col items-center text-center max-w-md space-y-4">
+            <div className="p-4 rounded-full bg-primary/10 ring-1 ring-primary/20">
+              <Upload className="h-10 w-10 text-primary" />
             </div>
-            <h2 className="text-xl font-bold mb-2">No Discrepancies to Resolve</h2>
-            <p className="text-muted-foreground mb-6">Run a reconciliation first to see vendor discrepancies.</p>
-            <Link href="/dashboard/reconciliation/import">
-              <Button className="gradient-bg text-white">
-                <Upload className="h-4 w-4 mr-2" />
-                Import & Reconcile
-              </Button>
-            </Link>
+            <h2 className="text-2xl font-bold tracking-tight">No Discrepancies</h2>
+            <p className="text-muted-foreground text-lg">
+              Run a reconciliation first to see vendor discrepancies here.
+            </p>
           </div>
+          <Link href="/dashboard/reconciliation/import">
+            <Button size="lg" className="rounded-full shadow-lg">
+              <Upload className="h-4 w-4 mr-2" />
+              Import & Reconcile
+            </Button>
+          </Link>
         </div>
       </div>
     );
@@ -201,119 +213,135 @@ export default function ResolutionCenterPage() {
 
   if (vendors.length === 0) {
     return (
-      <div className="flex flex-col min-h-screen">
+      <div className="flex flex-col min-h-screen bg-muted/20">
         <AppHeader title="Resolution Center" />
-        <div className="flex-1 flex items-center justify-center p-6">
-          <div className="text-center max-w-md">
-            <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
-              <CheckCircle className="h-8 w-8 text-green-600" />
+        <div className="flex-1 flex flex-col items-center justify-center p-6 gap-6">
+          <div className="flex flex-col items-center text-center max-w-md space-y-4">
+            <div className="p-4 rounded-full bg-green-100 ring-1 ring-green-200">
+              <CheckCircle className="h-10 w-10 text-green-600" />
             </div>
-            <h2 className="text-xl font-bold mb-2">All Records Matched!</h2>
-            <p className="text-muted-foreground mb-6">No discrepancies found. All invoices matched perfectly.</p>
-            <Link href="/dashboard/reconciliation">
-              <Button variant="outline">← Back to Results</Button>
-            </Link>
+            <h2 className="text-2xl font-bold tracking-tight text-foreground">All Reconciled!</h2>
+            <p className="text-muted-foreground text-lg">
+              Great job! No discrepancies found. All invoices matched perfectly.
+            </p>
           </div>
+          <Link href="/dashboard/reconciliation">
+            <Button variant="outline" size="lg">← Back to Dashboard</Button>
+          </Link>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-muted/20">
       <AppHeader title="Resolution Center" />
 
-      <div className="flex-1 p-6">
+      <main className="flex-1 p-4 md:p-6 lg:p-8 space-y-6 max-w-[1600px] mx-auto w-full">
         {/* Page Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-bold text-foreground">Vendor Resolution Center</h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              Generate ready-to-send emails for vendors with invoice discrepancies. Copy & paste into your email client.
+            <h2 className="text-2xl font-bold tracking-tight text-foreground">Vendor Resolution Center</h2>
+            <p className="text-muted-foreground mt-1">
+              Select a vendor to generate ready-to-send emails for resolving discrepancies.
             </p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-[calc(100vh-200px)] min-h-[600px]">
           {/* Vendor List */}
-          <Card className="lg:col-span-1">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-lg">Priority Vendors</CardTitle>
-              <span className="px-2.5 py-1 bg-red-100 text-red-700 text-xs font-medium rounded-full">
-                {vendors.length} Action Required
-              </span>
+          <Card className="lg:col-span-4 flex flex-col overflow-hidden h-full border-r-0 lg:border-r">
+            <CardHeader className="bg-muted/10 pb-4 border-b">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg">Priority Vendors</CardTitle>
+                <Badge variant="destructive" className="rounded-full px-2.5">
+                  {vendors.length} Action Needed
+                </Badge>
+              </div>
+              <div className="relative mt-2">
+                {/* Search placeholder for future */}
+                <Filter className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <input
+                  type="text"
+                  placeholder="Filter vendors..."
+                  className="w-full text-sm bg-background border rounded-md py-2 pl-9 pr-4 focus:outline-none focus:ring-1 focus:ring-primary"
+                />
+              </div>
             </CardHeader>
-            <CardContent className="space-y-3 max-h-[600px] overflow-y-auto">
-              {vendors.map((vendor) => (
-                <button
-                  key={vendor.gstin || vendor.name}
-                  onClick={() => setSelectedVendor(vendor)}
-                  className={`w-full p-4 rounded-lg border text-left transition-colors ${selectedVendor?.gstin === vendor.gstin && selectedVendor?.name === vendor.name
-                      ? "border-primary bg-primary/5"
-                      : "border-border hover:border-primary/50"
-                    }`}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-sm font-semibold text-primary">
-                        {vendor.name.slice(0, 2).toUpperCase()}
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-foreground">{vendor.name}</p>
-                        <p className="text-xs text-muted-foreground font-mono">{vendor.gstin || "No GSTIN"}</p>
-                      </div>
+            <CardContent className="p-0 overflow-y-auto flex-1 bg-muted/5">
+              <div className="divide-y divide-border/50">
+                {vendors.map((vendor) => (
+                  <button
+                    key={vendor.gstin || vendor.name}
+                    onClick={() => setSelectedVendor(vendor)}
+                    className={`w-full p-4 text-left transition-all hover:bg-muted/50 focus:outline-none ${selectedVendor?.gstin === vendor.gstin && selectedVendor?.name === vendor.name
+                      ? "bg-primary/5 border-l-4 border-l-primary"
+                      : "border-l-4 border-l-transparent"
+                      }`}
+                  >
+                    <div className="flex items-start justify-between mb-1">
+                      <p className={`text-sm font-semibold truncate pr-2 ${selectedVendor?.gstin === vendor.gstin ? "text-primary" : "text-foreground"}`}>
+                        {vendor.name}
+                      </p>
+                      <span className="text-xs font-bold text-destructive whitespace-nowrap">
+                        {formatINR(vendor.totalDiff)}
+                      </span>
                     </div>
-                    <span className="text-sm font-semibold text-red-600">
-                      {formatINR(vendor.totalDiff)}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
-                    <span>{vendor.invoiceCount} Invoice{vendor.invoiceCount > 1 ? "s" : ""}</span>
-                    <span className="text-red-500">{vendor.discrepancies[0]?.discrepancy_type.replace("_", " ")}</span>
-                  </div>
-                </button>
-              ))}
+
+                    <div className="flex items-center justify-between text-xs text-muted-foreground mt-1.5">
+                      <span className="bg-muted px-1.5 py-0.5 rounded font-mono text-[10px]">{vendor.gstin || "No GSTIN"}</span>
+                      <span>{vendor.invoiceCount} inv</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
             </CardContent>
           </Card>
 
-          {/* Email Composer */}
-          <div className="lg:col-span-2 space-y-6">
+          {/* Details & Email - Right Side */}
+          <div className="lg:col-span-8 flex flex-col gap-6 h-full overflow-y-auto">
             {/* Discrepancy Summary */}
             {selectedVendor && (
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <Card className="flex-shrink-0">
+                <CardHeader className="flex flex-row items-center justify-between py-4 bg-muted/10 border-b">
                   <div className="flex items-center gap-3">
-                    <CardTitle className="text-lg">{selectedVendor.name} — Discrepancies</CardTitle>
-                    <span className="px-2.5 py-1 bg-red-100 text-red-700 text-xs font-medium rounded-full">
-                      {selectedVendor.invoiceCount} issue{selectedVendor.invoiceCount > 1 ? "s" : ""}
-                    </span>
+                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-lg">
+                      {selectedVendor.name.slice(0, 1).toUpperCase()}
+                    </div>
+                    <div>
+                      <CardTitle className="text-base">{selectedVendor.name}</CardTitle>
+                      <CardDescription className="text-xs font-mono mt-0.5">{selectedVendor.gstin}</CardDescription>
+                    </div>
                   </div>
+                  <Badge variant="outline" className="bg-red-50 text-red-600 border-red-200">
+                    {selectedVendor.invoiceCount} Issue{selectedVendor.invoiceCount > 1 ? "s" : ""} Found
+                  </Badge>
                 </CardHeader>
-                <CardContent>
-                  <div className="overflow-x-auto">
+                <CardContent className="p-0">
+                  <div className="max-h-[250px] overflow-y-auto">
                     <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b border-border">
-                          <th className="text-left py-2 px-3 text-xs font-semibold text-muted-foreground uppercase">Invoice #</th>
-                          <th className="text-left py-2 px-3 text-xs font-semibold text-muted-foreground uppercase">Type</th>
-                          <th className="text-right py-2 px-3 text-xs font-semibold text-muted-foreground uppercase">PR Amount</th>
-                          <th className="text-right py-2 px-3 text-xs font-semibold text-muted-foreground uppercase">GSTR-2B</th>
-                          <th className="text-right py-2 px-3 text-xs font-semibold text-muted-foreground uppercase">Diff</th>
+                      <thead className="bg-muted/30 sticky top-0 z-10">
+                        <tr>
+                          <th className="text-left py-2.5 px-4 text-xs font-semibold text-muted-foreground uppercase">Invoice #</th>
+                          <th className="text-left py-2.5 px-4 text-xs font-semibold text-muted-foreground uppercase">Issue</th>
+                          <th className="text-right py-2.5 px-4 text-xs font-semibold text-muted-foreground uppercase">PR</th>
+                          <th className="text-right py-2.5 px-4 text-xs font-semibold text-muted-foreground uppercase">GSTR-2B</th>
+                          <th className="text-right py-2.5 px-4 text-xs font-semibold text-muted-foreground uppercase">Diff</th>
                         </tr>
                       </thead>
-                      <tbody>
+                      <tbody className="divide-y divide-border/50">
                         {selectedVendor.discrepancies.map((d, i) => (
-                          <tr key={i} className="border-b border-border last:border-0">
-                            <td className="py-2 px-3 font-medium">{d.invoice_no}</td>
-                            <td className="py-2 px-3">
-                              <span className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-600">
+                          <tr key={i} className="hover:bg-muted/10">
+                            <td className="py-2.5 px-4 font-medium">{d.invoice_no}</td>
+                            <td className="py-2.5 px-4">
+                              <Badge variant="outline" className="text-[10px] bg-red-50 text-red-600 border-red-100 px-1.5 py-0 h-5">
                                 {d.discrepancy_type.replace("_", " ")}
-                              </span>
+                              </Badge>
                             </td>
-                            <td className="py-2 px-3 text-right">{d.pr_amount > 0 ? formatINR(d.pr_amount) : "—"}</td>
-                            <td className="py-2 px-3 text-right">{d.gstr2b_amount > 0 ? formatINR(d.gstr2b_amount) : "—"}</td>
-                            <td className="py-2 px-3 text-right text-red-600 font-medium">
-                              {d.difference !== 0 ? formatINR(d.difference) : "—"}
+                            <td className="py-2.5 px-4 text-right text-muted-foreground">{d.pr_amount > 0 ? formatINR(d.pr_amount) : "-"}</td>
+                            <td className="py-2.5 px-4 text-right text-muted-foreground">{d.gstr2b_amount > 0 ? formatINR(d.gstr2b_amount) : "-"}</td>
+                            <td className="py-2.5 px-4 text-right font-medium text-destructive">
+                              {d.difference !== 0 ? formatINR(d.difference) : "-"}
                             </td>
                           </tr>
                         ))}
@@ -325,85 +353,68 @@ export default function ResolutionCenterPage() {
             )}
 
             {/* Generated Email */}
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <div>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Mail className="h-5 w-5" />
-                    Generated Email
-                  </CardTitle>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Copy and paste this into your email client to send to the vendor.
-                  </p>
+            <Card className="flex-1 flex flex-col shadow-lg border-primary/20">
+              <CardHeader className="py-4 border-b flex flex-row items-center justify-between bg-primary/5">
+                <div className="flex items-center gap-2">
+                  <Mail className="h-5 w-5 text-primary" />
+                  <div>
+                    <CardTitle className="text-base text-primary">Email Draft</CardTitle>
+                  </div>
                 </div>
                 <Button
                   onClick={handleCopy}
                   disabled={!email || isGenerating}
+                  size="sm"
                   variant={copied ? "default" : "outline"}
-                  className={copied ? "bg-green-600 hover:bg-green-700 text-white" : ""}
+                  className={copied ? "bg-green-600 hover:bg-green-700 text-white border-green-600" : "bg-background"}
                 >
                   {copied ? (
                     <>
-                      <CheckCircle className="h-4 w-4 mr-2" />
-                      Copied!
+                      <CheckCircle className="h-3.5 w-3.5 mr-2" />
+                      Copied
                     </>
                   ) : (
                     <>
-                      <Copy className="h-4 w-4 mr-2" />
-                      Copy to Clipboard
+                      <Copy className="h-3.5 w-3.5 mr-2" />
+                      Copy Draft
                     </>
                   )}
                 </Button>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="flex-1 p-4 flex flex-col gap-4">
                 {isGenerating ? (
-                  <div className="flex items-center justify-center py-12">
-                    <Loader2 className="h-6 w-6 animate-spin text-primary mr-3" />
-                    <span className="text-muted-foreground">Generating email template...</span>
+                  <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary mb-3" />
+                    <p>Generating personalized email using AI...</p>
                   </div>
                 ) : email ? (
-                  <>
-                    {/* Subject Line */}
-                    <div>
-                      <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                        Subject
-                      </label>
-                      <div className="mt-1 p-3 bg-muted/30 rounded-lg text-sm font-medium text-foreground border border-border">
+                  <div className="flex-1 flex flex-col gap-4 animate-in fade-in duration-300">
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Subject</label>
+                      <div className="p-3 bg-background border rounded-md text-sm font-medium shadow-sm">
                         {email.subject}
                       </div>
                     </div>
-
-                    {/* Email Body */}
-                    <div>
-                      <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                        Body
-                      </label>
+                    <div className="space-y-1 flex-1 flex flex-col">
+                      <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Message Body</label>
                       <Textarea
                         value={email.body}
                         onChange={(e) => setEmail({ ...email, body: e.target.value })}
-                        rows={16}
-                        className="mt-1 font-mono text-sm resize-y"
+                        className="flex-1 font-mono text-sm resize-none bg-background leading-relaxed p-4 shadow-sm"
                       />
                     </div>
-
-                    {/* Copy Hint */}
-                    <div className="flex items-center gap-2 p-3 bg-primary/5 rounded-lg border border-primary/10">
-                      <AlertCircle className="h-4 w-4 text-primary flex-shrink-0" />
-                      <p className="text-xs text-muted-foreground">
-                        Click &quot;Copy to Clipboard&quot; to copy the full email (subject + body). Then paste it into your email client (Gmail, Outlook, etc.).
-                      </p>
-                    </div>
-                  </>
+                  </div>
                 ) : (
-                  <div className="py-12 text-center text-muted-foreground">
-                    Select a vendor to generate an email template.
+                  <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground/50 border-2 border-dashed border-muted rounded-lg m-4">
+                    <Mail className="h-12 w-12 mb-2 opacity-50" />
+                    <p>Select a vendor to generate an email draft</p>
                   </div>
                 )}
               </CardContent>
             </Card>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

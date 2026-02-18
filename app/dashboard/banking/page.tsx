@@ -5,6 +5,7 @@ import { AppHeader } from "@/components/app-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -16,8 +17,6 @@ import {
   Plus,
   Search,
   Download,
-  Building2,
-  CreditCard,
   ArrowUpRight,
   ArrowDownLeft,
   TrendingUp,
@@ -26,12 +25,10 @@ import {
   Eye,
   MoreHorizontal,
   Wallet,
-  PiggyBank,
-  Banknote,
-  Link2,
-  CheckCircle,
   Clock,
   ChevronRight,
+  CheckCircle,
+  Link2,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -50,7 +47,7 @@ const bankAccounts = [
     lastSync: "2 mins ago",
     status: "connected",
     logo: "H",
-    color: "bg-blue-600",
+    color: "from-blue-600 to-blue-800",
   },
   {
     id: 2,
@@ -61,7 +58,7 @@ const bankAccounts = [
     lastSync: "5 mins ago",
     status: "connected",
     logo: "I",
-    color: "bg-orange-600",
+    color: "from-orange-500 to-orange-700",
   },
   {
     id: 3,
@@ -72,7 +69,7 @@ const bankAccounts = [
     lastSync: "1 hour ago",
     status: "connected",
     logo: "S",
-    color: "bg-blue-800",
+    color: "from-blue-500 to-blue-700",
   },
 ];
 
@@ -158,6 +155,8 @@ const stats = [
     change: "+8.2%",
     trend: "up",
     icon: Wallet,
+    color: "text-primary",
+    bgColor: "bg-primary/10",
   },
   {
     title: "This Month Inflow",
@@ -165,6 +164,8 @@ const stats = [
     change: "+12.5%",
     trend: "up",
     icon: ArrowDownLeft,
+    color: "text-green-600",
+    bgColor: "bg-green-100",
   },
   {
     title: "This Month Outflow",
@@ -172,12 +173,16 @@ const stats = [
     change: "-5.3%",
     trend: "down",
     icon: ArrowUpRight,
+    color: "text-red-600",
+    bgColor: "bg-red-100",
   },
   {
     title: "Pending Reconciliation",
     value: 430000,
     subtext: "3 transactions",
     icon: Clock,
+    color: "text-amber-600",
+    bgColor: "bg-amber-100",
   },
 ];
 
@@ -204,161 +209,126 @@ export default function BankingPage() {
   });
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-muted/20">
       <AppHeader title="Banking" />
 
-      <div className="flex-1 p-6">
+      <main className="flex-1 p-4 md:p-6 lg:p-8 space-y-6">
         {/* Page Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Banking Overview</h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              Manage your bank accounts and reconcile transactions
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">Banking Overview</h1>
+            <p className="text-muted-foreground mt-1 text-lg">
+              Manage connected accounts and reconcile transactions.
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="outline">
+            <Button variant="outline" className="shadow-sm">
               <RefreshCw className="h-4 w-4 mr-2" />
               Sync All
             </Button>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Account
+            <Button className="shadow-lg shadow-primary/25">
+              <Link2 className="h-4 w-4 mr-2" />
+              Link Account
             </Button>
           </div>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {stats.map((stat) => (
-            <Card key={stat.title}>
-              <CardContent className="p-5">
+            <Card key={stat.title} className="hover-lift border-t-4 border-t-transparent hover:border-t-primary/50">
+              <CardContent className="p-6">
                 <div className="flex items-start justify-between">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <stat.icon className="h-5 w-5 text-primary" />
+                  <div className={`p-3 rounded-xl ${stat.bgColor}`}>
+                    <stat.icon className={`h-6 w-6 ${stat.color}`} />
                   </div>
                   {stat.change && (
-                    <span
-                      className={`text-sm font-medium flex items-center gap-1 ${
-                        stat.trend === "up" ? "text-green-600" : "text-red-600"
-                      }`}
-                    >
-                      {stat.trend === "up" ? (
-                        <TrendingUp className="h-4 w-4" />
-                      ) : (
-                        <TrendingDown className="h-4 w-4" />
-                      )}
+                    <Badge variant="outline" className={`${stat.trend === "up" ? "bg-green-50 text-green-700 border-green-200" : "bg-red-50 text-red-700 border-red-200"
+                      } rounded-full px-2 py-0.5`}>
+                      {stat.trend === "up" ? <TrendingUp className="h-3 w-3 mr-1" /> : <TrendingDown className="h-3 w-3 mr-1" />}
                       {stat.change}
-                    </span>
+                    </Badge>
                   )}
                 </div>
-                <p className="text-sm text-muted-foreground mt-3">{stat.title}</p>
-                <p className="text-2xl font-bold text-foreground mt-1">
-                  {typeof stat.value === "number" ? formatCurrency(stat.value) : stat.value}
-                </p>
-                {stat.subtext && (
-                  <p className="text-xs text-muted-foreground mt-1">{stat.subtext}</p>
-                )}
+                <div className="mt-4">
+                  <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
+                  <h3 className="text-2xl font-bold text-foreground mt-1">
+                    {typeof stat.value === "number" ? formatCurrency(stat.value) : stat.value}
+                  </h3>
+                  {stat.subtext && (
+                    <p className="text-xs text-muted-foreground mt-1">{stat.subtext}</p>
+                  )}
+                </div>
               </CardContent>
             </Card>
           ))}
         </div>
 
         {/* Bank Accounts */}
-        <Card className="mb-6">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-lg">Connected Bank Accounts</CardTitle>
-            <Button variant="ghost" size="sm" className="text-primary">
-              <Link2 className="h-4 w-4 mr-2" />
-              Link New Account
-            </Button>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {bankAccounts.map((account) => (
-                <div
-                  key={account.id}
-                  className="border border-border rounded-lg p-4 hover:border-primary/50 transition-colors"
-                >
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                      <div
-                        className={`w-10 h-10 rounded-lg ${account.color} flex items-center justify-center text-white font-bold`}
-                      >
-                        {account.logo}
-                      </div>
-                      <div>
-                        <p className="font-medium text-foreground">{account.bankName}</p>
-                        <p className="text-xs text-muted-foreground">{account.accountType}</p>
-                      </div>
-                    </div>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem>
-                          <Eye className="h-4 w-4 mr-2" />
-                          View Statement
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <RefreshCw className="h-4 w-4 mr-2" />
-                          Sync Now
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Download className="h-4 w-4 mr-2" />
-                          Download Statement
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {bankAccounts.map((account) => (
+            <Card key={account.id} className="group overflow-hidden relative border-0 shadow-md">
+              <div className={`absolute inset-0 bg-gradient-to-br ${account.color} opacity-10 group-hover:opacity-15 transition-opacity`} />
+              <div className={`absolute top-0 left-0 w-1 h-full bg-gradient-to-b ${account.color}`} />
+              <CardHeader className="flex flex-row items-center justify-between pb-2 relative z-10">
+                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${account.color} flex items-center justify-center text-white font-bold text-xl shadow-lg`}>
+                  {account.logo}
+                </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-black/5">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem>View Statement</DropdownMenuItem>
+                    <DropdownMenuItem>Sync Now</DropdownMenuItem>
+                    <DropdownMenuItem className="text-destructive">Unlink Account</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </CardHeader>
+              <CardContent className="relative z-10 pt-2">
+                <div className="space-y-1 mb-4">
+                  <h3 className="font-bold text-lg text-foreground">{account.bankName}</h3>
+                  <p className="text-sm text-muted-foreground">{account.accountType} • {account.accountNumber}</p>
+                </div>
+                <div className="flex items-end justify-between">
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Available Balance</p>
+                    <p className="text-2xl font-bold text-foreground">{formatCurrency(account.balance)}</p>
                   </div>
-                  <p className="text-xs text-muted-foreground mb-1">
-                    Account: {account.accountNumber}
-                  </p>
-                  <p className="text-2xl font-bold text-foreground mb-3">
-                    {formatCurrency(account.balance)}
-                  </p>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1">
-                      <CheckCircle className="h-3 w-3 text-green-600" />
-                      <span className="text-xs text-green-600">Connected</span>
-                    </div>
-                    <span className="text-xs text-muted-foreground">
-                      Last sync: {account.lastSync}
-                    </span>
+                  <div className="flex items-center gap-1.5 text-xs text-green-600 bg-green-100/50 px-2 py-1 rounded-full border border-green-200/50">
+                    <CheckCircle className="h-3 w-3" />
+                    <span>Connected</span>
                   </div>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
 
         {/* Transactions */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-lg">Recent Transactions</CardTitle>
-            <Button variant="ghost" size="sm" className="text-primary">
-              View All
-              <ChevronRight className="h-4 w-4 ml-1" />
-            </Button>
-          </CardHeader>
-          <CardContent>
-            {/* Filters */}
-            <div className="flex flex-col sm:flex-row gap-4 mb-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search transactions..."
-                  className="pl-10"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
+        <Card className="overflow-hidden border-border/60 shadow-sm">
+          <CardHeader className="border-b bg-muted/10 pb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <CardTitle>Recent Transactions</CardTitle>
+                <p className="text-sm text-muted-foreground mt-0.5">View and manage your latest financial activity</p>
               </div>
-              <div className="flex items-center gap-3">
+
+              {/* Filters */}
+              <div className="flex items-center gap-2">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search..."
+                    className="pl-9 w-[200px] h-9 bg-background/50"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
                 <Select value={typeFilter} onValueChange={setTypeFilter}>
-                  <SelectTrigger className="w-32">
+                  <SelectTrigger className="w-[110px] h-9">
                     <SelectValue placeholder="Type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -367,115 +337,95 @@ export default function BankingPage() {
                     <SelectItem value="debit">Debit</SelectItem>
                   </SelectContent>
                 </Select>
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-36">
-                    <SelectValue placeholder="Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="reconciled">Reconciled</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Button variant="outline" size="icon">
+                <Button variant="outline" size="icon" className="h-9 w-9">
                   <Download className="h-4 w-4" />
                 </Button>
               </div>
             </div>
-
-            {/* Transactions Table */}
+          </CardHeader>
+          <CardContent className="p-0">
             <div className="overflow-x-auto">
-              <table className="w-full">
+              <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-border bg-muted/30">
-                    <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider py-3 px-4">
-                      Transaction
-                    </th>
-                    <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider py-3 px-4">
-                      Reference
-                    </th>
-                    <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider py-3 px-4">
-                      Date & Time
-                    </th>
-                    <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider py-3 px-4">
-                      Category
-                    </th>
-                    <th className="text-right text-xs font-medium text-muted-foreground uppercase tracking-wider py-3 px-4">
-                      Amount
-                    </th>
-                    <th className="text-center text-xs font-medium text-muted-foreground uppercase tracking-wider py-3 px-4">
-                      Status
-                    </th>
+                  <tr className="border-b border-border bg-muted/30 text-muted-foreground">
+                    <th className="text-left font-medium py-3 px-6 uppercase text-xs tracking-wider">Transaction</th>
+                    <th className="text-left font-medium py-3 px-4 uppercase text-xs tracking-wider">Reference</th>
+                    <th className="text-left font-medium py-3 px-4 uppercase text-xs tracking-wider">Date</th>
+                    <th className="text-left font-medium py-3 px-4 uppercase text-xs tracking-wider">Category</th>
+                    <th className="text-right font-medium py-3 px-6 uppercase text-xs tracking-wider">Amount</th>
+                    <th className="text-center font-medium py-3 px-4 uppercase text-xs tracking-wider">Status</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-border/50">
                   {filteredTransactions.map((txn) => (
                     <tr
                       key={txn.id}
-                      className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors"
+                      className="hover:bg-muted/30 transition-colors group"
                     >
-                      <td className="py-3 px-4">
+                      <td className="py-4 px-6">
                         <div className="flex items-center gap-3">
                           <div
-                            className={`p-2 rounded-full ${
-                              txn.type === "credit" ? "bg-green-100" : "bg-red-100"
-                            }`}
+                            className={`p-2 rounded-full ${txn.type === "credit" ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600"
+                              }`}
                           >
                             {txn.type === "credit" ? (
-                              <ArrowDownLeft className="h-4 w-4 text-green-600" />
+                              <ArrowDownLeft className="h-4 w-4" />
                             ) : (
-                              <ArrowUpRight className="h-4 w-4 text-red-600" />
+                              <ArrowUpRight className="h-4 w-4" />
                             )}
                           </div>
                           <div>
-                            <p className="text-sm font-medium text-foreground">
+                            <p className="font-medium text-foreground group-hover:text-primary transition-colors">
                               {txn.description}
                             </p>
                             <p className="text-xs text-muted-foreground">{txn.bank}</p>
                           </div>
                         </div>
                       </td>
-                      <td className="py-3 px-4">
-                        <span className="text-sm text-primary font-mono">{txn.reference}</span>
+                      <td className="py-4 px-4 font-mono text-xs text-muted-foreground">
+                        {txn.reference}
                       </td>
-                      <td className="py-3 px-4">
-                        <div>
-                          <p className="text-sm text-foreground">{txn.date}</p>
-                          <p className="text-xs text-muted-foreground">{txn.time}</p>
+                      <td className="py-4 px-4">
+                        <div className="flex flex-col">
+                          <span className="text-foreground">{txn.date}</span>
+                          <span className="text-xs text-muted-foreground">{txn.time}</span>
                         </div>
                       </td>
-                      <td className="py-3 px-4">
-                        <span className="text-sm text-muted-foreground">{txn.category}</span>
+                      <td className="py-4 px-4">
+                        <Badge variant="secondary" className="font-normal bg-muted text-muted-foreground hover:bg-muted">
+                          {txn.category}
+                        </Badge>
                       </td>
-                      <td className="py-3 px-4 text-right">
+                      <td className="py-4 px-6 text-right">
                         <span
-                          className={`text-sm font-semibold ${
-                            txn.type === "credit" ? "text-green-600" : "text-red-600"
-                          }`}
+                          className={`font-semibold ${txn.type === "credit" ? "text-green-600" : "text-foreground"
+                            }`}
                         >
-                          {txn.type === "credit" ? "+" : "-"}
-                          {formatCurrency(txn.amount)}
+                          {txn.type === "credit" ? "+" : "-"} {formatCurrency(txn.amount)}
                         </span>
                       </td>
-                      <td className="py-3 px-4 text-center">
-                        <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            txn.status === "reconciled"
-                              ? "bg-green-100 text-green-700"
-                              : "bg-amber-100 text-amber-700"
-                          }`}
-                        >
+                      <td className="py-4 px-4 text-center">
+                        <Badge variant={txn.status === "reconciled" ? "default" : "secondary"}
+                          className={txn.status === "reconciled"
+                            ? "bg-green-100 text-green-700 hover:bg-green-200 border-green-200"
+                            : "bg-amber-100 text-amber-700 hover:bg-amber-200 border-amber-200"
+                          }>
                           {txn.status === "reconciled" ? "Reconciled" : "Pending"}
-                        </span>
+                        </Badge>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
+            <div className="p-4 border-t flex justify-center">
+              <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-primary">
+                View All Transactions <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
+            </div>
           </CardContent>
         </Card>
-      </div>
+      </main>
     </div>
   );
 }

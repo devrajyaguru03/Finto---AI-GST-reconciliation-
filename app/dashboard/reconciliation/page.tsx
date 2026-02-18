@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { AppHeader } from "@/components/app-header";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -24,7 +24,10 @@ import {
   ArrowRight,
   Upload,
   XCircle,
+  Filter,
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 
 interface ReconciliationResult {
   id: string;
@@ -94,10 +97,10 @@ const statusLabel = (status: string) => {
   return map[status] || status;
 };
 
-const statusColor = (status: string) => {
-  if (status === "exact_match") return "text-green-600 bg-green-100";
-  if (status === "pr_only" || status === "gstr2b_only") return "text-amber-600 bg-amber-100";
-  return "text-red-600 bg-red-100";
+const StatusBadge = ({ status }: { status: string }) => {
+  if (status === "exact_match") return <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/20 hover:bg-green-500/20">Matched</Badge>;
+  if (status === "pr_only" || status === "gstr2b_only") return <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-500/20 hover:bg-amber-500/20">{status === "pr_only" ? "Not in GSTR-2B" : "Not in PR"}</Badge>;
+  return <Badge variant="destructive" className="bg-red-500/10 text-red-600 border-red-500/20 hover:bg-red-500/20 shadow-none">Mismatch</Badge>;
 };
 
 export default function ReconciliationPage() {
@@ -145,22 +148,22 @@ export default function ReconciliationPage() {
     return (
       <div className="flex flex-col min-h-screen">
         <AppHeader title="Reconciliation" />
-        <div className="flex-1 flex items-center justify-center p-6">
-          <div className="text-center max-w-md">
-            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-              <Upload className="h-8 w-8 text-primary" />
+        <div className="flex-1 flex flex-col items-center justify-center p-6 gap-6">
+          <div className="flex flex-col items-center text-center space-y-4 max-w-lg">
+            <div className="p-4 rounded-full bg-primary/10 ring-1 ring-primary/20 shadow-lg shadow-primary/5">
+              <Upload className="h-10 w-10 text-primary" />
             </div>
-            <h2 className="text-xl font-bold mb-2">No Reconciliation Data</h2>
-            <p className="text-muted-foreground mb-6">
-              Upload your Purchase Register and GSTR-2B files to start reconciliation.
+            <h2 className="text-3xl font-bold tracking-tight">No Reconciliation Data Found</h2>
+            <p className="text-muted-foreground text-lg">
+              Upload your Purchase Register and GSTR-2B files to generate a comprehensive reconciliation report.
             </p>
-            <Link href="/dashboard/reconciliation/import">
-              <Button className="gradient-bg text-white">
-                <Upload className="h-4 w-4 mr-2" />
-                Import & Reconcile
-              </Button>
-            </Link>
           </div>
+          <Link href="/dashboard/reconciliation/import">
+            <Button size="lg" className="rounded-full px-8 shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all hover:-translate-y-1">
+              <Upload className="h-4 w-4 mr-2" />
+              Start New Reconciliation
+            </Button>
+          </Link>
         </div>
       </div>
     );
@@ -169,29 +172,31 @@ export default function ReconciliationPage() {
   const { stats, itc_summary, parsing } = data;
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-muted/20">
       <AppHeader title="Reconciliation" />
 
-      <div className="flex-1 p-6">
+      <main className="flex-1 p-4 md:p-6 lg:p-8 space-y-6">
         {/* Page Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-bold text-foreground">
+            <h2 className="text-2xl font-bold tracking-tight text-foreground">
               Statement Reconciliation
             </h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              {parsing.pr_file} vs {parsing.gstr2b_file} — {parsing.pr_invoices_parsed} PR invoices, {parsing.gstr2b_invoices_parsed} GSTR-2B invoices
-            </p>
+            <div className="flex flex-wrap items-center gap-2 mt-1 text-sm text-muted-foreground">
+              <span className="font-medium text-foreground">{parsing.pr_file}</span>
+              <span className="text-muted-foreground/50">•</span>
+              <span className="font-medium text-foreground">{parsing.gstr2b_file}</span>
+            </div>
           </div>
           <div className="flex items-center gap-3">
             <Link href="/dashboard/reconciliation/report">
-              <Button variant="outline">
+              <Button variant="outline" className="shadow-sm">
                 <Download className="h-4 w-4 mr-2" />
-                View Report
+                Report
               </Button>
             </Link>
             <Link href="/dashboard/reconciliation/resolution">
-              <Button>
+              <Button className="shadow-md shadow-primary/20">
                 <FileSpreadsheet className="h-4 w-4 mr-2" />
                 Resolution Center
               </Button>
@@ -200,178 +205,190 @@ export default function ReconciliationPage() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <Card>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card className="hover-lift">
             <CardContent className="p-5">
-              <p className="text-sm text-muted-foreground">Total Records</p>
+              <p className="text-sm font-medium text-muted-foreground">Total Records</p>
               <div className="flex items-end justify-between mt-2">
-                <p className="text-3xl font-bold text-foreground">{stats.total_records.toLocaleString()}</p>
-                <TrendingUp className="h-5 w-5 text-green-600" />
+                <p className="text-3xl font-bold">{stats.total_records.toLocaleString()}</p>
+                <div className="p-2 rounded-full bg-primary/10 text-primary">
+                  <TrendingUp className="h-4 w-4" />
+                </div>
               </div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="hover-lift">
             <CardContent className="p-5">
-              <p className="text-sm text-muted-foreground">Exact Matches</p>
+              <p className="text-sm font-medium text-muted-foreground">Exact Matches</p>
               <div className="flex items-end justify-between mt-2">
-                <p className="text-3xl font-bold text-foreground">{stats.exact_match.toLocaleString()}</p>
-                <CheckCircle className="h-5 w-5 text-green-600" />
+                <p className="text-3xl font-bold">{stats.exact_match.toLocaleString()}</p>
+                <div className="p-2 rounded-full bg-green-500/10 text-green-600">
+                  <CheckCircle className="h-4 w-4" />
+                </div>
               </div>
-              <div className="mt-2 h-1.5 bg-muted rounded-full overflow-hidden">
+              <div className="mt-3 h-1.5 bg-muted rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-green-500 rounded-full"
+                  className="h-full bg-green-500 rounded-full transition-all duration-1000"
                   style={{ width: `${stats.match_rate}%` }}
                 />
               </div>
-              <p className="text-xs text-green-600 mt-1">{stats.match_rate}% match rate</p>
+              <p className="text-xs text-green-600 mt-1.5 font-medium">{stats.match_rate}% match rate</p>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="hover-lift">
             <CardContent className="p-5">
-              <p className="text-sm text-muted-foreground">Pending Review</p>
+              <p className="text-sm font-medium text-muted-foreground">Pending Review</p>
               <div className="flex items-end justify-between mt-2">
-                <p className="text-3xl font-bold text-foreground">{stats.pending_review.toLocaleString()}</p>
-                <AlertCircle className="h-5 w-5 text-amber-600" />
+                <p className="text-3xl font-bold">{stats.pending_review.toLocaleString()}</p>
+                <div className="p-2 rounded-full bg-amber-500/10 text-amber-600">
+                  <AlertCircle className="h-4 w-4" />
+                </div>
               </div>
-              <p className="text-xs text-amber-600 mt-1">Requires attention</p>
+              <p className="text-xs text-amber-600 mt-3 font-medium">Requires attention</p>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="hover-lift">
             <CardContent className="p-5">
-              <p className="text-sm text-muted-foreground">Discrepancies</p>
+              <p className="text-sm font-medium text-muted-foreground">Discrepancies</p>
               <div className="flex items-end justify-between mt-2">
-                <p className="text-3xl font-bold text-foreground">{stats.discrepancies.toLocaleString()}</p>
-                <XCircle className="h-5 w-5 text-red-600" />
+                <p className="text-3xl font-bold">{stats.discrepancies.toLocaleString()}</p>
+                <div className="p-2 rounded-full bg-red-500/10 text-red-600">
+                  <XCircle className="h-4 w-4" />
+                </div>
               </div>
-              <p className="text-xs text-red-600 mt-1">Action needed</p>
+              <p className="text-xs text-red-600 mt-3 font-medium">Action needed</p>
             </CardContent>
           </Card>
         </div>
 
         {/* ITC Summary Bar */}
-        <Card className="mb-6">
+        <Card className="overflow-hidden border-l-4 border-l-primary shadow-sm bg-gradient-to-br from-card to-muted/20">
           <CardContent className="p-5">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-sm font-medium">ITC Summary</span>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-base font-semibold">ITC Summary</h3>
+              <Badge variant="secondary">FY 2024-25</Badge>
             </div>
-            <div className="grid grid-cols-3 gap-4 mt-3">
-              <div>
-                <p className="text-xs text-muted-foreground uppercase">Claimable</p>
-                <p className="text-lg font-bold text-green-600">{formatINR(itc_summary.itc_claimable)}</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
+              <div className="space-y-1">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Claimable</p>
+                <p className="text-2xl font-bold text-green-600 tracking-tight">{formatINR(itc_summary.itc_claimable)}</p>
               </div>
-              <div>
-                <p className="text-xs text-muted-foreground uppercase">At Risk</p>
-                <p className="text-lg font-bold text-amber-600">{formatINR(itc_summary.itc_at_risk)}</p>
+              <div className="space-y-1">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">At Risk</p>
+                <p className="text-2xl font-bold text-amber-600 tracking-tight">{formatINR(itc_summary.itc_at_risk)}</p>
               </div>
-              <div>
-                <p className="text-xs text-muted-foreground uppercase">Total Available</p>
-                <p className="text-lg font-bold text-primary">{formatINR(itc_summary.total_itc_available)}</p>
+              <div className="space-y-1">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Total Available</p>
+                <p className="text-2xl font-bold text-primary tracking-tight">{formatINR(itc_summary.total_itc_available)}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Filters */}
-        <Card className="mb-6">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    type="search"
-                    placeholder="Search invoices, vendor, GSTIN..."
-                    className="w-72 pl-9"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                  />
-                </div>
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="relative flex-1 w-full sm:max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search invoices, vendor, GSTIN..."
+              className="pl-9 bg-background/50"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <Select value={filter} onValueChange={setFilter}>
+              <SelectTrigger className="w-full sm:w-[200px] bg-background/50">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">Filter:</span>
-                  <Select value={filter} onValueChange={setFilter}>
-                    <SelectTrigger className="w-44">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Records</SelectItem>
-                      <SelectItem value="matched">Matched</SelectItem>
-                      <SelectItem value="discrepancy">All Discrepancies</SelectItem>
-                      <SelectItem value="amount_mismatch">Amount Mismatch</SelectItem>
-                      <SelectItem value="pr_only">Missing in GSTR-2B</SelectItem>
-                      <SelectItem value="gstr2b_only">Missing in PR</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Filter className="h-3.5 w-3.5 text-muted-foreground" />
+                  <span className="truncate">{filter === "all" ? "All Records" : filter.replace("_", " ")}</span>
                 </div>
-              </div>
-              <span className="text-sm text-muted-foreground">
-                {filteredResults.length} of {data.results.length} records
-              </span>
-            </div>
-          </CardContent>
-        </Card>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Records</SelectItem>
+                <SelectItem value="matched">Matched</SelectItem>
+                <SelectItem value="discrepancy">All Discrepancies</SelectItem>
+                <SelectItem value="amount_mismatch">Amount Mismatch</SelectItem>
+                <SelectItem value="pr_only">Missing in GSTR-2B</SelectItem>
+                <SelectItem value="gstr2b_only">Missing in PR</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
 
         {/* Results Table */}
-        <Card>
+        <Card className="overflow-hidden shadow-sm">
           <CardContent className="p-0">
             <div className="overflow-x-auto">
-              <table className="w-full">
+              <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-border bg-muted/30">
-                    <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider py-3 px-4">
+                  <tr className="border-b border-border bg-muted/40 transition-colors hover:bg-muted/50">
+                    <th className="text-left font-semibold text-muted-foreground py-3 px-4 pl-6 w-[120px]">
                       Status
                     </th>
-                    <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider py-3 px-4">
-                      Invoice #
+                    <th className="text-left font-semibold text-muted-foreground py-3 px-4">
+                      Invoice No
                     </th>
-                    <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider py-3 px-4">
-                      Vendor / GSTIN
+                    <th className="text-left font-semibold text-muted-foreground py-3 px-4">
+                      Vendor Details
                     </th>
-                    <th className="text-right text-xs font-semibold text-muted-foreground uppercase tracking-wider py-3 px-4">
+                    <th className="text-right font-semibold text-muted-foreground py-3 px-4">
                       PR Amount
                     </th>
-                    <th className="text-right text-xs font-semibold text-muted-foreground uppercase tracking-wider py-3 px-4">
+                    <th className="text-right font-semibold text-muted-foreground py-3 px-4">
                       GSTR-2B Amount
                     </th>
-                    <th className="text-right text-xs font-semibold text-muted-foreground uppercase tracking-wider py-3 px-4">
+                    <th className="text-right font-semibold text-muted-foreground py-3 px-4 pr-6">
                       Difference
                     </th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-border">
                   {filteredResults.map((item) => {
                     const pr = item.pr_invoice;
                     const gstr = item.gstr2b_invoice;
                     const inv = pr || gstr;
                     return (
-                      <tr key={item.id} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
-                        <td className="py-3 px-4">
-                          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${statusColor(item.status)}`}>
-                            {statusLabel(item.status)}
+                      <tr key={item.id} className="group hover:bg-muted/30 transition-colors">
+                        <td className="py-4 px-4 pl-6 align-top">
+                          <StatusBadge status={item.status} />
+                        </td>
+                        <td className="py-4 px-4 align-top">
+                          <p className="font-medium text-foreground">{inv?.invoice_no || "—"}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">{inv?.invoice_date || ""}</p>
+                        </td>
+                        <td className="py-4 px-4 align-top">
+                          <p className="font-medium text-foreground max-w-[200px] truncate" title={inv?.vendor_name}>
+                            {inv?.vendor_name || "—"}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-0.5 font-mono bg-muted/50 inline-block px-1 rounded">
+                            {inv?.vendor_gstin || ""}
+                          </p>
+                        </td>
+                        <td className="py-4 px-4 text-right align-top">
+                          <p className="font-medium text-foreground">{pr ? formatINR(pr.taxable_value) : "—"}</p>
+                          {pr && <p className="text-xs text-muted-foreground mt-0.5">Tax: {formatINR(pr.total_tax)}</p>}
+                        </td>
+                        <td className="py-4 px-4 text-right align-top">
+                          <p className="font-medium text-foreground">{gstr ? formatINR(gstr.taxable_value) : "—"}</p>
+                          {gstr && <p className="text-xs text-muted-foreground mt-0.5">Tax: {formatINR(gstr.total_tax)}</p>}
+                        </td>
+                        <td className="py-4 px-4 pr-6 text-right align-top">
+                          <span className={`font-semibold ${item.total_diff !== 0 ? "text-red-600" : "text-green-600"}`}>
+                            {item.total_diff !== 0 ? formatINR(item.total_diff) : "Match"}
                           </span>
-                        </td>
-                        <td className="py-3 px-4 text-sm font-medium text-foreground">
-                          {inv?.invoice_no || "—"}
-                        </td>
-                        <td className="py-3 px-4">
-                          <p className="text-sm text-foreground">{inv?.vendor_name || "—"}</p>
-                          <p className="text-xs text-muted-foreground font-mono">{inv?.vendor_gstin || ""}</p>
-                        </td>
-                        <td className="py-3 px-4 text-sm font-medium text-right text-foreground">
-                          {pr ? formatINR(pr.taxable_value) : "—"}
-                        </td>
-                        <td className="py-3 px-4 text-sm font-medium text-right text-foreground">
-                          {gstr ? formatINR(gstr.taxable_value) : "—"}
-                        </td>
-                        <td className={`py-3 px-4 text-sm font-medium text-right ${item.total_diff !== 0 ? "text-red-600" : "text-green-600"}`}>
-                          {item.total_diff !== 0 ? formatINR(item.total_diff) : "✓"}
                         </td>
                       </tr>
                     );
                   })}
                   {filteredResults.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="py-12 text-center text-muted-foreground">
-                        No records match your filter.
+                      <td colSpan={6} className="py-16 text-center">
+                        <div className="flex flex-col items-center justify-center gap-2">
+                          <Search className="h-8 w-8 text-muted-foreground/50" />
+                          <p className="text-muted-foreground font-medium">No records found matching your filters.</p>
+                        </div>
                       </td>
                     </tr>
                   )}
@@ -380,28 +397,28 @@ export default function ReconciliationPage() {
             </div>
 
             {/* Table Footer */}
-            <div className="flex items-center justify-between p-4 border-t border-border">
-              <p className="text-sm text-muted-foreground">
-                Showing {filteredResults.length} of {data.results.length} results
+            <div className="flex items-center justify-between p-4 border-t border-border bg-muted/10">
+              <p className="text-xs text-muted-foreground font-medium">
+                Showing {filteredResults.length} of {data.results.length} records
               </p>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 <Link href="/dashboard/reconciliation/import">
-                  <Button variant="outline" size="sm">
-                    <Upload className="h-4 w-4 mr-2" />
+                  <Button variant="outline" size="sm" className="h-8 text-xs">
+                    <Upload className="h-3.5 w-3.5 mr-1.5" />
                     Re-upload
                   </Button>
                 </Link>
                 <Link href="/dashboard/reconciliation/resolution">
-                  <Button size="sm">
+                  <Button size="sm" className="h-8 text-xs">
                     Resolve Discrepancies
-                    <ArrowRight className="h-4 w-4 ml-2" />
+                    <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
                   </Button>
                 </Link>
               </div>
             </div>
           </CardContent>
         </Card>
-      </div>
+      </main>
     </div>
   );
 }

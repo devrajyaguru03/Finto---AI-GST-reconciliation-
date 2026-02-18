@@ -4,6 +4,7 @@ import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { AppSidebar } from "@/components/app-sidebar";
 import { useAuth } from "@/lib/auth-context";
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 
 export default function DashboardLayout({
   children,
@@ -33,9 +34,11 @@ export default function DashboardLayout({
   if (!isAuthenticated) return null;
 
   return (
-    <div className="min-h-screen bg-background">
+    <SidebarProvider>
       <AppSidebar />
-      <main className="ml-60">{children}</main>
-    </div>
+      <SidebarInset>
+        {children}
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

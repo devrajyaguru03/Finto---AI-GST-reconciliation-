@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -37,6 +38,7 @@ import {
   ChevronRight,
   Headphones,
   Building2,
+  LifeBuoy,
 } from "lucide-react";
 
 const faqs = [
@@ -87,36 +89,6 @@ const faqs = [
         question: "What reports can I generate from Finto?",
         answer:
           "Finto generates comprehensive reports including: Reconciliation Summary, Mismatch Report, Missing Invoice Report, ITC Eligibility Report, Vendor-wise Analysis, and Period Comparison reports. All reports can be exported as PDF or Excel.",
-      },
-      {
-        question: "How do I share reports with my clients?",
-        answer:
-          "You can export reports in CA-ready formats (Excel, PDF) and share directly via email. For multi-client setups, use the client portal feature to give clients secure access to their own reports and reconciliation status.",
-      },
-      {
-        question: "Can I customize the report templates?",
-        answer:
-          "Yes, Professional and Enterprise plans allow report customization. You can add your firm's logo, customize headers/footers, select which columns to include, and save templates for future use.",
-      },
-    ],
-  },
-  {
-    category: "Billing & Account",
-    questions: [
-      {
-        question: "How is the invoice limit calculated?",
-        answer:
-          "Invoice limits are calculated per calendar month based on the total unique invoices processed across all reconciliations. Both matched and unmatched invoices count toward your limit. Unused invoices do not roll over.",
-      },
-      {
-        question: "Can I upgrade or downgrade my plan?",
-        answer:
-          "Yes, you can change your plan at any time from Settings > Billing. Upgrades take effect immediately with prorated billing. Downgrades take effect at the start of your next billing cycle.",
-      },
-      {
-        question: "Do you offer discounts for annual billing?",
-        answer:
-          "Yes, we offer 20% discount on all plans when you choose annual billing. Contact our sales team for custom pricing on Enterprise plans with higher volumes.",
       },
     ],
   },
@@ -187,79 +159,73 @@ export default function SupportPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-muted/20">
       <AppHeader title="Support" />
 
-      <div className="flex-1 p-6">
+      <main className="flex-1 p-4 md:p-6 lg:p-8 space-y-8 max-w-7xl mx-auto w-full">
         {/* Page Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-foreground">Help & Support</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Find answers, get help, and contact our support team
+        <div className="text-center md:text-left space-y-2">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">Help Center</h1>
+          <p className="text-lg text-muted-foreground max-w-2xl">
+            Everything you need to troubleshoot issues, learn more, and get in touch with our team.
           </p>
         </div>
 
         {/* Contact Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <Card className="border-primary/20 bg-primary/5">
-            <CardContent className="p-5">
-              <div className="flex items-start gap-4">
-                <div className="p-3 rounded-lg bg-primary/10">
-                  <Mail className="h-6 w-6 text-primary" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card className="hover-lift border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
+            <CardContent className="p-6">
+              <div className="flex flex-col items-center text-center gap-4">
+                <div className="p-4 rounded-full bg-primary/10 ring-4 ring-primary/5">
+                  <Mail className="h-8 w-8 text-primary" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-foreground">Email Support</h3>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Get help via email within 24 hours
+                  <h3 className="font-bold text-lg text-foreground">Email Support</h3>
+                  <p className="text-sm text-muted-foreground mt-1 mb-3">
+                    Get detailed answers within 24 hours
                   </p>
-                  <a
-                    href="mailto:support@finto.io"
-                    className="text-sm text-primary font-medium mt-2 inline-flex items-center hover:underline"
-                  >
-                    support@finto.io
-                    <ExternalLink className="h-3 w-3 ml-1" />
-                  </a>
+                  <Button variant="outline" className="rounded-full">
+                    <span className="mr-2">support@finto.io</span>
+                    <ExternalLink className="h-3 w-3" />
+                  </Button>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardContent className="p-5">
-              <div className="flex items-start gap-4">
-                <div className="p-3 rounded-lg bg-green-100">
-                  <Phone className="h-6 w-6 text-green-600" />
+          <Card className="hover-lift">
+            <CardContent className="p-6">
+              <div className="flex flex-col items-center text-center gap-4">
+                <div className="p-4 rounded-full bg-green-100 ring-4 ring-green-50">
+                  <Phone className="h-8 w-8 text-green-600" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-foreground">Phone Support</h3>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Mon-Fri, 9 AM - 6 PM IST
+                  <h3 className="font-bold text-lg text-foreground">Phone Support</h3>
+                  <p className="text-sm text-muted-foreground mt-1 mb-3">
+                    Mon-Fri, 9:00 AM - 6:00 PM IST
                   </p>
-                  <a
-                    href="tel:+918001234567"
-                    className="text-sm text-green-600 font-medium mt-2 inline-flex items-center hover:underline"
-                  >
-                    +91 800-123-4567
-                  </a>
+                  <Button variant="outline" className="rounded-full text-green-700 hover:text-green-800 hover:bg-green-50">
+                    <span className="mr-2">+91 800-123-4567</span>
+                    <Phone className="h-3 w-3" />
+                  </Button>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardContent className="p-5">
-              <div className="flex items-start gap-4">
-                <div className="p-3 rounded-lg bg-purple-100">
-                  <MessageCircle className="h-6 w-6 text-purple-600" />
+          <Card className="hover-lift">
+            <CardContent className="p-6">
+              <div className="flex flex-col items-center text-center gap-4">
+                <div className="p-4 rounded-full bg-purple-100 ring-4 ring-purple-50">
+                  <MessageCircle className="h-8 w-8 text-purple-600" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-foreground">Live Chat</h3>
-                  <p className="text-sm text-muted-foreground mt-1">
+                  <h3 className="font-bold text-lg text-foreground">Live Chat</h3>
+                  <p className="text-sm text-muted-foreground mt-1 mb-3">
                     Chat with our team in real-time
                   </p>
-                  <Button variant="link" className="p-0 h-auto text-purple-600 mt-2">
-                    Start Chat
-                    <ChevronRight className="h-4 w-4 ml-1" />
+                  <Button className="rounded-full bg-purple-600 hover:bg-purple-700">
+                    Start Chat <ChevronRight className="h-4 w-4 ml-1" />
                   </Button>
                 </div>
               </div>
@@ -267,135 +233,102 @@ export default function SupportPage() {
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* FAQs Section */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-8">
             {/* FAQ Search */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <HelpCircle className="h-5 w-5 text-primary" />
+            <Card className="shadow-sm border-border/60">
+              <CardHeader className="pb-3 border-b bg-muted/20">
+                <CardTitle className="flex items-center gap-2 text-xl">
+                  <LifeBuoy className="h-5 w-5 text-primary" />
                   Frequently Asked Questions
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="relative mb-4">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <CardContent className="pt-6">
+                <div className="relative mb-8">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <Input
-                    placeholder="Search FAQs..."
-                    className="pl-10"
+                    placeholder="Search for answers..."
+                    className="pl-11 h-12 text-base shadow-sm"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
                 </div>
 
                 {filteredFaqs.length > 0 ? (
-                  filteredFaqs.map((category) => (
-                    <div key={category.category} className="mb-6 last:mb-0">
-                      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-                        {category.category}
-                      </h3>
-                      <Accordion type="single" collapsible className="w-full">
-                        {category.questions.map((item, index) => (
-                          <AccordionItem key={index} value={`${category.category}-${index}`}>
-                            <AccordionTrigger className="text-left text-sm font-medium">
-                              {item.question}
-                            </AccordionTrigger>
-                            <AccordionContent className="text-sm text-muted-foreground">
-                              {item.answer}
-                            </AccordionContent>
-                          </AccordionItem>
-                        ))}
-                      </Accordion>
-                    </div>
-                  ))
+                  <div className="space-y-8">
+                    {filteredFaqs.map((category) => (
+                      <div key={category.category}>
+                        <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-4 ml-1">
+                          {category.category}
+                        </h3>
+                        <Accordion type="single" collapsible className="w-full space-y-3">
+                          {category.questions.map((item, index) => (
+                            <AccordionItem
+                              key={index}
+                              value={`${category.category}-${index}`}
+                              className="border rounded-lg px-4 bg-background shadow-sm data-[state=open]:ring-2 data-[state=open]:ring-primary/20 transition-all"
+                            >
+                              <AccordionTrigger className="text-left font-medium hover:no-underline py-4">
+                                {item.question}
+                              </AccordionTrigger>
+                              <AccordionContent className="text-muted-foreground leading-relaxed pb-4">
+                                {item.answer}
+                              </AccordionContent>
+                            </AccordionItem>
+                          ))}
+                        </Accordion>
+                      </div>
+                    ))}
+                  </div>
                 ) : (
-                  <div className="text-center py-8">
-                    <HelpCircle className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-                    <p className="text-muted-foreground">No FAQs found matching your search</p>
+                  <div className="text-center py-12 bg-muted/30 rounded-lg border border-dashed text-muted-foreground">
+                    <HelpCircle className="h-10 w-10 mx-auto mb-3 opacity-50" />
+                    <p>No results found for &quot;{searchQuery}&quot;</p>
                   </div>
                 )}
               </CardContent>
             </Card>
 
-            {/* Resources */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg">Helpful Resources</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <a
-                    href="#"
-                    className="flex items-center gap-3 p-3 rounded-lg border border-border hover:border-primary/50 hover:bg-muted/50 transition-colors"
-                  >
-                    <div className="p-2 rounded-lg bg-blue-100">
-                      <BookOpen className="h-5 w-5 text-blue-600" />
+            {/* Resources Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {[
+                { icon: BookOpen, title: "User Guide", desc: "Documentation", color: "text-blue-600", bg: "bg-blue-100" },
+                { icon: Video, title: "Video Tutorials", desc: "Step-by-step guides", color: "text-red-600", bg: "bg-red-100" },
+                { icon: FileText, title: "GST Guidelines", desc: "Latest updates", color: "text-green-600", bg: "bg-green-100" },
+                { icon: Headphones, title: "Webinars", desc: "Live sessions", color: "text-purple-600", bg: "bg-purple-100" },
+              ].map((item, i) => (
+                <Card key={i} className="hover:shadow-md transition-shadow cursor-pointer group">
+                  <CardContent className="p-4 flex items-center gap-4">
+                    <div className={`p-3 rounded-lg ${item.bg} group-hover:scale-110 transition-transform`}>
+                      <item.icon className={`h-6 w-6 ${item.color}`} />
                     </div>
                     <div>
-                      <p className="font-medium text-foreground text-sm">User Guide</p>
-                      <p className="text-xs text-muted-foreground">Complete documentation</p>
+                      <h4 className="font-semibold text-foreground">{item.title}</h4>
+                      <p className="text-sm text-muted-foreground">{item.desc}</p>
                     </div>
-                  </a>
-                  <a
-                    href="#"
-                    className="flex items-center gap-3 p-3 rounded-lg border border-border hover:border-primary/50 hover:bg-muted/50 transition-colors"
-                  >
-                    <div className="p-2 rounded-lg bg-red-100">
-                      <Video className="h-5 w-5 text-red-600" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-foreground text-sm">Video Tutorials</p>
-                      <p className="text-xs text-muted-foreground">Step-by-step guides</p>
-                    </div>
-                  </a>
-                  <a
-                    href="#"
-                    className="flex items-center gap-3 p-3 rounded-lg border border-border hover:border-primary/50 hover:bg-muted/50 transition-colors"
-                  >
-                    <div className="p-2 rounded-lg bg-green-100">
-                      <FileText className="h-5 w-5 text-green-600" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-foreground text-sm">GST Guidelines</p>
-                      <p className="text-xs text-muted-foreground">Latest GST updates</p>
-                    </div>
-                  </a>
-                  <a
-                    href="#"
-                    className="flex items-center gap-3 p-3 rounded-lg border border-border hover:border-primary/50 hover:bg-muted/50 transition-colors"
-                  >
-                    <div className="p-2 rounded-lg bg-purple-100">
-                      <Headphones className="h-5 w-5 text-purple-600" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-foreground text-sm">Webinars</p>
-                      <p className="text-xs text-muted-foreground">Live sessions & recordings</p>
-                    </div>
-                  </a>
-                </div>
-              </CardContent>
-            </Card>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           </div>
 
-          {/* Right Column */}
+          {/* Right Column - Forms & Tickets */}
           <div className="space-y-6">
             {/* Submit Ticket */}
-            <Card>
-              <CardHeader className="pb-3">
+            <Card className="shadow-lg border-primary/20 ring-1 ring-primary/5">
+              <CardHeader className="bg-primary/5 pb-4 border-b">
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Send className="h-5 w-5 text-primary" />
                   Report a Problem
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="category" className="text-sm">
-                    What is your problem about?
-                  </Label>
+              <CardContent className="space-y-4 pt-6">
+                <div className="space-y-2">
+                  <Label htmlFor="category">Category</Label>
                   <Select value={ticketCategory} onValueChange={setTicketCategory}>
-                    <SelectTrigger className="mt-1.5">
-                      <SelectValue placeholder="Select category" />
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select topic" />
                     </SelectTrigger>
                     <SelectContent>
                       {problemCategories.map((cat) => (
@@ -407,150 +340,82 @@ export default function SupportPage() {
                   </Select>
                 </div>
 
-                <div>
-                  <Label htmlFor="priority" className="text-sm">
-                    Priority
-                  </Label>
+                <div className="space-y-2">
+                  <Label htmlFor="priority">Priority</Label>
                   <Select value={ticketPriority} onValueChange={setTicketPriority}>
-                    <SelectTrigger className="mt-1.5">
-                      <SelectValue placeholder="Select priority" />
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select urgency" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="low">Low - General question</SelectItem>
-                      <SelectItem value="medium">Medium - Need help soon</SelectItem>
-                      <SelectItem value="high">High - Blocking my work</SelectItem>
-                      <SelectItem value="urgent">Urgent - Critical issue</SelectItem>
+                      <SelectItem value="low">Low</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                      <SelectItem value="urgent">Urgent</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
-                <div>
-                  <Label htmlFor="subject" className="text-sm">
-                    Subject
-                  </Label>
+                <div className="space-y-2">
+                  <Label htmlFor="subject">Subject</Label>
                   <Input
                     id="subject"
-                    placeholder="Brief description of your issue"
-                    className="mt-1.5"
+                    placeholder="Brief summary"
                     value={ticketSubject}
                     onChange={(e) => setTicketSubject(e.target.value)}
                   />
                 </div>
 
-                <div>
-                  <Label htmlFor="description" className="text-sm">
-                    Describe your problem
-                  </Label>
+                <div className="space-y-2">
+                  <Label htmlFor="description">Description</Label>
                   <Textarea
                     id="description"
-                    placeholder="Please provide as much detail as possible including steps to reproduce the issue, error messages, and screenshots if applicable."
-                    className="mt-1.5 min-h-[120px]"
+                    placeholder="Details about the issue..."
+                    className="min-h-[100px] resize-none"
                     value={ticketDescription}
                     onChange={(e) => setTicketDescription(e.target.value)}
                   />
                 </div>
 
-                <Button className="w-full" onClick={handleSubmitTicket}>
-                  <Send className="h-4 w-4 mr-2" />
+                <Button className="w-full shadow-lg" onClick={handleSubmitTicket}>
                   Submit Ticket
                 </Button>
-
-                <p className="text-xs text-muted-foreground text-center">
-                  We typically respond within 24 hours
-                </p>
               </CardContent>
             </Card>
 
             {/* My Tickets */}
             <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg">My Support Tickets</CardTitle>
+              <CardHeader className="pb-3 border-b">
+                <CardTitle className="text-base font-semibold">Recent Tickets</CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="pt-4">
                 <div className="space-y-3">
                   {supportTickets.map((ticket) => (
                     <div
                       key={ticket.id}
-                      className="p-3 rounded-lg border border-border hover:border-primary/50 transition-colors cursor-pointer"
+                      className="p-3 rounded-lg border border-border hover:bg-muted/50 transition-colors text-sm"
                     >
-                      <div className="flex items-start justify-between mb-2">
-                        <span className="text-xs font-mono text-muted-foreground">
-                          {ticket.id}
-                        </span>
-                        <span
-                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
-                            ticket.status === "Open"
-                              ? "bg-blue-100 text-blue-700"
-                              : ticket.status === "In Progress"
-                                ? "bg-amber-100 text-amber-700"
-                                : "bg-green-100 text-green-700"
-                          }`}
-                        >
-                          {ticket.status === "Open" && <AlertCircle className="h-3 w-3" />}
-                          {ticket.status === "In Progress" && <Clock className="h-3 w-3" />}
-                          {ticket.status === "Resolved" && <CheckCircle className="h-3 w-3" />}
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-mono text-xs text-muted-foreground">{ticket.id}</span>
+                        <Badge variant="outline" className={`text-[10px] px-1.5 h-5 ${ticket.status === "Open" ? "text-blue-600 border-blue-200 bg-blue-50" :
+                            ticket.status === "Resolved" ? "text-green-600 border-green-200 bg-green-50" :
+                              "text-amber-600 border-amber-200 bg-amber-50"
+                          }`}>
                           {ticket.status}
-                        </span>
+                        </Badge>
                       </div>
-                      <p className="text-sm font-medium text-foreground line-clamp-1">
-                        {ticket.subject}
-                      </p>
-                      <div className="flex items-center justify-between mt-2">
-                        <span className="text-xs text-muted-foreground">{ticket.created}</span>
-                        <span className="text-xs text-muted-foreground">
-                          Updated: {ticket.lastUpdate}
-                        </span>
-                      </div>
+                      <p className="font-medium text-foreground line-clamp-1 mb-1">{ticket.subject}</p>
+                      <span className="text-xs text-muted-foreground">{ticket.lastUpdate}</span>
                     </div>
                   ))}
                 </div>
-                <Button variant="ghost" className="w-full mt-3 text-primary">
-                  View All Tickets
-                  <ChevronRight className="h-4 w-4 ml-1" />
+                <Button variant="link" className="w-full mt-2 h-auto p-0 text-primary">
+                  View All History
                 </Button>
-              </CardContent>
-            </Card>
-
-            {/* Company Info */}
-            <Card className="bg-muted/30">
-              <CardContent className="p-5">
-                <div className="flex items-center gap-3 mb-4">
-                  <Building2 className="h-5 w-5 text-primary" />
-                  <h3 className="font-semibold text-foreground">Finto Technologies</h3>
-                </div>
-                <div className="space-y-3 text-sm">
-                  <div>
-                    <p className="text-muted-foreground">Support Email</p>
-                    <a href="mailto:support@finto.io" className="text-primary hover:underline">
-                      support@finto.io
-                    </a>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">Sales Inquiries</p>
-                    <a href="mailto:sales@finto.io" className="text-primary hover:underline">
-                      sales@finto.io
-                    </a>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">Business Hours</p>
-                    <p className="text-foreground">Monday - Friday, 9:00 AM - 6:00 PM IST</p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">Address</p>
-                    <p className="text-foreground">
-                      123 Tech Park, Whitefield
-                      <br />
-                      Bangalore, Karnataka 560066
-                      <br />
-                      India
-                    </p>
-                  </div>
-                </div>
               </CardContent>
             </Card>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

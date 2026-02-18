@@ -10,20 +10,42 @@ import {
   Settings,
   HelpCircle,
   LogOut,
+  User,
+  ChevronUp,
 } from "lucide-react";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarRail,
+  useSidebar,
+} from "@/components/ui/sidebar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/lib/auth-context";
 
 const mainNavItems = [
   {
     title: "Reconciliation",
-    href: "/dashboard/reconciliation",
+    url: "/dashboard/reconciliation",
     icon: ArrowLeftRight,
     isHero: true,
   },
   {
     title: "GSTIN List",
-    href: "/dashboard/clients",
+    url: "/dashboard/clients",
     icon: Building2,
   },
 ];
@@ -31,12 +53,12 @@ const mainNavItems = [
 const settingsNavItems = [
   {
     title: "Preferences",
-    href: "/dashboard/preferences",
+    url: "/dashboard/preferences",
     icon: Settings,
   },
   {
     title: "Support",
-    href: "/dashboard/support",
+    url: "/dashboard/support",
     icon: HelpCircle,
   },
 ];
@@ -45,6 +67,7 @@ export function AppSidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { user, logout } = useAuth();
+  const { isMobile } = useSidebar();
 
   const handleLogout = () => {
     logout();
@@ -58,97 +81,120 @@ export function AppSidebar() {
     .toUpperCase();
 
   return (
-    <aside className="fixed left-0 top-0 bottom-0 w-60 bg-card border-r border-border flex flex-col z-40">
-      {/* Logo */}
-      <div className="h-16 px-6 flex items-center border-b border-border">
-        <Link href="/dashboard" className="flex items-center gap-2">
-          <FintoLogoIcon size={28} />
-          <span className="text-xl font-bold text-primary">Finto</span>
-        </Link>
-      </div>
+    <Sidebar collapsible="icon">
+      <SidebarHeader className="h-16 border-b border-sidebar-border/50 bg-sidebar/50 backdrop-blur-sm">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton size="lg" asChild className="hover:bg-primary/5">
+              <Link href="/dashboard">
+                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <FintoLogoIcon size={20} />
+                </div>
+                <div className="grid flex-1 text-left text-sm leading-tight">
+                  <span className="truncate font-bold text-primary text-base">Finto</span>
+                  <span className="truncate text-xs text-muted-foreground">AI Reconciliation</span>
+                </div>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarHeader>
 
-      {/* Navigation */}
-      <nav className="flex-1 px-3 py-4 overflow-y-auto">
-        <div className="mb-2">
-          <span className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-            Main
-          </span>
-        </div>
-        <ul className="space-y-1">
-          {mainNavItems.map((item) => {
-            const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
-            const isHero = "isHero" in item && item.isHero;
-            return (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  className={cn(
-                    "flex items-center gap-3 px-3 rounded-lg text-sm font-medium transition-colors",
-                    isHero ? "py-3" : "py-2.5",
-                    isActive
-                      ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted",
-                    isHero && !isActive && "bg-primary/5 text-primary"
-                  )}
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupLabel>Platform</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {mainNavItems.map((item) => {
+                const isActive = pathname === item.url || pathname.startsWith(`${item.url}/`);
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={isActive}
+                      tooltip={item.title}
+                      className={cn(
+                        "transition-all duration-200",
+                        isActive ? "bg-primary/10 text-primary font-medium" : "text-muted-foreground hover:text-foreground"
+                      )}
+                    >
+                      <Link href={item.url}>
+                        <item.icon className={cn("size-4", isActive && "text-primary")} />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Settings</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {settingsNavItems.map((item) => {
+                const isActive = pathname === item.url;
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={isActive}
+                      tooltip={item.title}
+                      className={cn(
+                        "transition-all duration-200",
+                        isActive ? "bg-primary/10 text-primary font-medium" : "text-muted-foreground hover:text-foreground"
+                      )}
+                    >
+                      <Link href={item.url}>
+                        <item.icon className={cn("size-4", isActive && "text-primary")} />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+
+      <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <SidebarMenuButton
+                  size="lg"
+                  className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                 >
-                  <item.icon className={cn("h-5 w-5", isHero && "h-5 w-5")} />
-                  <span className={cn(isHero && "font-semibold")}>{item.title}</span>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-
-        <div className="mt-8 mb-2">
-          <span className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-            Settings
-          </span>
-        </div>
-        <ul className="space-y-1">
-          {settingsNavItems.map((item) => {
-            const isActive = pathname === item.href;
-            return (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
-                    isActive
-                      ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                  )}
-                >
-                  <item.icon className="h-5 w-5" />
-                  {item.title}
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      </nav>
-
-      {/* User Profile */}
-      <div className="p-4 border-t border-border">
-        <div className="flex items-center gap-3">
-          <Avatar className="h-10 w-10">
-            <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
-              {initials}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-foreground truncate">{userEmail.split("@")[0]}</p>
-            <p className="text-xs text-muted-foreground truncate">{userEmail}</p>
-          </div>
-          <button
-            onClick={handleLogout}
-            className="p-2 text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted transition-colors"
-            title="Sign out"
-          >
-            <LogOut className="h-4 w-4" />
-          </button>
-        </div>
-      </div>
-    </aside>
+                  <Avatar className="h-8 w-8 rounded-lg">
+                    <AvatarFallback className="rounded-lg bg-primary/10 text-primary font-semibold">
+                      {initials}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="grid flex-1 text-left text-sm leading-tight">
+                    <span className="truncate font-semibold">{userEmail.split("@")[0]}</span>
+                    <span className="truncate text-xs">{userEmail}</span>
+                  </div>
+                  <ChevronUp className="ml-auto size-4" />
+                </SidebarMenuButton>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                side="top"
+                className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+              >
+                <DropdownMenuItem onClick={handleLogout} className="text- destructive focus:text-destructive">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Log out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
+      <SidebarRail />
+    </Sidebar>
   );
 }
-

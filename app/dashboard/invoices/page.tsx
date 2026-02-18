@@ -5,6 +5,8 @@ import { AppHeader } from "@/components/app-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -12,7 +14,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Plus,
   Search,
@@ -26,10 +27,10 @@ import {
   AlertCircle,
   IndianRupee,
   Calendar,
-  Building2,
   Eye,
   Pencil,
   Trash2,
+  ArrowRight,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -48,9 +49,9 @@ const invoiceStats = [
     bgColor: "bg-primary/10",
   },
   {
-    title: "Pending",
+    title: "Pending Approval",
     value: "89",
-    change: "Worth Rs. 2.4L",
+    change: "Worth ₹2.4L",
     icon: Clock,
     color: "text-amber-600",
     bgColor: "bg-amber-100",
@@ -58,7 +59,7 @@ const invoiceStats = [
   {
     title: "Approved",
     value: "1,150",
-    change: "89.6% approval rate",
+    change: "90% approval rate",
     icon: CheckCircle,
     color: "text-green-600",
     bgColor: "bg-green-100",
@@ -66,7 +67,7 @@ const invoiceStats = [
   {
     title: "Disputed",
     value: "45",
-    change: "Requires attention",
+    change: "Action required",
     icon: AlertCircle,
     color: "text-red-600",
     bgColor: "bg-red-100",
@@ -205,24 +206,24 @@ export default function InvoicesPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-muted/20">
       <AppHeader title="Invoices" />
 
-      <div className="flex-1 p-6">
+      <main className="flex-1 p-4 md:p-6 lg:p-8 space-y-6">
         {/* Page Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Invoice Management</h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              Track, manage, and reconcile all your purchase and sales invoices
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">Invoice Management</h1>
+            <p className="text-muted-foreground mt-1 text-lg">
+              Track, organize, and manage all your purchase and sales invoices.
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="outline">
+            <Button variant="outline" className="shadow-sm">
               <Upload className="h-4 w-4 mr-2" />
               Import
             </Button>
-            <Button>
+            <Button className="shadow-lg shadow-primary/25 hover:shadow-primary/40">
               <Plus className="h-4 w-4 mr-2" />
               New Invoice
             </Button>
@@ -230,79 +231,81 @@ export default function InvoicesPage() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {invoiceStats.map((stat) => (
-            <Card key={stat.title}>
-              <CardContent className="p-5">
+            <Card key={stat.title} className="hover-lift border-t-4 border-t-transparent hover:border-t-primary/50">
+              <CardContent className="p-6">
                 <div className="flex items-start justify-between">
-                  <div className={`p-2 rounded-lg ${stat.bgColor}`}>
-                    <stat.icon className={`h-5 w-5 ${stat.color}`} />
+                  <div className={`p-3 rounded-xl ${stat.bgColor} ring-1 ring-inset ring-black/5`}>
+                    <stat.icon className={`h-6 w-6 ${stat.color}`} />
                   </div>
                 </div>
-                <p className="text-sm text-muted-foreground mt-3">{stat.title}</p>
-                <p className="text-2xl font-bold text-foreground mt-1">{stat.value}</p>
-                <p className="text-xs text-muted-foreground mt-1">{stat.change}</p>
+                <div className="mt-4">
+                  <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
+                  <div className="flex items-baseline gap-2 mt-1">
+                    <h3 className="text-2xl font-bold text-foreground">{stat.value}</h3>
+                    <span className="text-xs text-muted-foreground font-medium bg-muted/50 px-1.5 py-0.5 rounded">{stat.change}</span>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           ))}
         </div>
 
         {/* Filters and Search */}
-        <Card className="mb-6">
-          <CardContent className="p-4">
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search by invoice ID, vendor name, or GSTIN..."
-                  className="pl-10"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-              <div className="flex items-center gap-3">
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-36">
-                    <Filter className="h-4 w-4 mr-2" />
-                    <SelectValue placeholder="Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="approved">Approved</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="disputed">Disputed</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select value={typeFilter} onValueChange={setTypeFilter}>
-                  <SelectTrigger className="w-36">
-                    <SelectValue placeholder="Type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Types</SelectItem>
-                    <SelectItem value="purchase">Purchase</SelectItem>
-                    <SelectItem value="sales">Sales</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Button variant="outline" size="icon">
-                  <Download className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+          <div className="relative flex-1 w-full max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search invoices..."
+              className="pl-9 bg-background/60 shadow-sm"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+
+          <div className="flex items-center gap-3 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-[140px] shadow-sm bg-background/60">
+                <Filter className="h-4 w-4 mr-2 text-muted-foreground" />
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="approved">Approved</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="disputed">Disputed</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={typeFilter} onValueChange={setTypeFilter}>
+              <SelectTrigger className="w-[130px] shadow-sm bg-background/60">
+                <SelectValue placeholder="Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Types</SelectItem>
+                <SelectItem value="purchase">Purchase</SelectItem>
+                <SelectItem value="sales">Sales</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button variant="outline" size="icon" className="shadow-sm">
+              <Download className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
 
         {/* Selected Actions */}
         {selectedInvoices.length > 0 && (
-          <div className="bg-primary/10 border border-primary/20 rounded-lg p-3 mb-4 flex items-center justify-between">
-            <span className="text-sm font-medium text-primary">
-              {selectedInvoices.length} invoice(s) selected
+          <div className="bg-primary/5 border border-primary/20 rounded-xl p-3 flex items-center justify-between animate-in fade-in slide-in-from-top-2">
+            <span className="text-sm font-medium text-primary flex items-center gap-2">
+              <CheckCircle className="h-4 w-4" />
+              {selectedInvoices.length} selected
             </span>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm">
-                Export Selected
+              <Button variant="outline" size="sm" className="bg-background">
+                Export
               </Button>
-              <Button variant="outline" size="sm">
-                Mark as Approved
+              <Button variant="default" size="sm">
+                Approve
               </Button>
               <Button variant="destructive" size="sm">
                 Delete
@@ -312,12 +315,12 @@ export default function InvoicesPage() {
         )}
 
         {/* Invoices Table */}
-        <Card>
+        <Card className="overflow-hidden shadow-md border-border/60">
           <CardContent className="p-0">
             <div className="overflow-x-auto">
-              <table className="w-full">
+              <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-border bg-muted/30">
+                  <tr className="border-b border-border bg-muted/40 text-muted-foreground">
                     <th className="text-left py-3 px-4 w-10">
                       <Checkbox
                         checked={
@@ -327,112 +330,79 @@ export default function InvoicesPage() {
                         onCheckedChange={toggleSelectAll}
                       />
                     </th>
-                    <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider py-3 px-4">
-                      Invoice
-                    </th>
-                    <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider py-3 px-4">
-                      Vendor
-                    </th>
-                    <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider py-3 px-4">
-                      <div className="flex items-center gap-1">
-                        <Calendar className="h-3 w-3" />
-                        Date
-                      </div>
-                    </th>
-                    <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider py-3 px-4">
-                      Type
-                    </th>
-                    <th className="text-right text-xs font-medium text-muted-foreground uppercase tracking-wider py-3 px-4">
-                      <div className="flex items-center justify-end gap-1">
-                        <IndianRupee className="h-3 w-3" />
-                        Amount
-                      </div>
-                    </th>
-                    <th className="text-right text-xs font-medium text-muted-foreground uppercase tracking-wider py-3 px-4">
-                      Tax (GST)
-                    </th>
-                    <th className="text-center text-xs font-medium text-muted-foreground uppercase tracking-wider py-3 px-4">
-                      Status
-                    </th>
-                    <th className="text-center text-xs font-medium text-muted-foreground uppercase tracking-wider py-3 px-4">
-                      Actions
-                    </th>
+                    <th className="text-left font-medium py-3 px-4 uppercase text-xs tracking-wider">Invoice ID</th>
+                    <th className="text-left font-medium py-3 px-4 uppercase text-xs tracking-wider">Vendor details</th>
+                    <th className="text-left font-medium py-3 px-4 uppercase text-xs tracking-wider">Date</th>
+                    <th className="text-left font-medium py-3 px-4 uppercase text-xs tracking-wider">Type</th>
+                    <th className="text-right font-medium py-3 px-4 uppercase text-xs tracking-wider">Amount</th>
+                    <th className="text-right font-medium py-3 px-4 uppercase text-xs tracking-wider">Tax ID</th>
+                    <th className="text-center font-medium py-3 px-4 uppercase text-xs tracking-wider">Status</th>
+                    <th className="text-center font-medium py-3 px-4 uppercase text-xs tracking-wider w-[50px]"></th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-border/50">
                   {filteredInvoices.map((invoice) => (
                     <tr
                       key={invoice.id}
-                      className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors"
+                      className={`hover:bg-muted/30 transition-colors group ${selectedInvoices.includes(invoice.id) ? "bg-primary/5" : ""}`}
                     >
-                      <td className="py-3 px-4">
+                      <td className="py-4 px-4">
                         <Checkbox
                           checked={selectedInvoices.includes(invoice.id)}
                           onCheckedChange={() => toggleSelect(invoice.id)}
                         />
                       </td>
-                      <td className="py-3 px-4">
-                        <span className="text-sm font-medium text-primary">{invoice.id}</span>
+                      <td className="py-4 px-4">
+                        <span className="font-mono font-medium text-primary hover:underline cursor-pointer">{invoice.id}</span>
                       </td>
-                      <td className="py-3 px-4">
-                        <div>
-                          <p className="text-sm font-medium text-foreground">{invoice.vendor}</p>
-                          <p className="text-xs text-muted-foreground font-mono">
+                      <td className="py-4 px-4">
+                        <div className="flex flex-col">
+                          <span className="font-medium text-foreground">{invoice.vendor}</span>
+                          <span className="text-xs text-muted-foreground font-mono">
                             {invoice.vendorGstin}
-                          </p>
+                          </span>
                         </div>
                       </td>
-                      <td className="py-3 px-4">
-                        <div>
-                          <p className="text-sm text-foreground">{invoice.date}</p>
-                          <p className="text-xs text-muted-foreground">Due: {invoice.dueDate}</p>
+                      <td className="py-4 px-4">
+                        <div className="flex flex-col">
+                          <span className="text-foreground">{invoice.date}</span>
+                          <span className="text-xs text-muted-foreground">Due: {invoice.dueDate}</span>
                         </div>
                       </td>
-                      <td className="py-3 px-4">
-                        <span
-                          className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                            invoice.type === "Purchase"
-                              ? "bg-blue-100 text-blue-700"
-                              : "bg-purple-100 text-purple-700"
-                          }`}
-                        >
-                          {invoice.type}
-                        </span>
+                      <td className="py-4 px-4">
+                        <Badge variant="secondary" className="font-normal font-mono text-xs">
+                          {invoice.type.toUpperCase()}
+                        </Badge>
                       </td>
-                      <td className="py-3 px-4 text-right">
-                        <span className="text-sm font-medium text-foreground">
+                      <td className="py-4 px-4 text-right">
+                        <span className="font-semibold text-foreground">
                           {formatCurrency(invoice.amount)}
                         </span>
                       </td>
-                      <td className="py-3 px-4 text-right">
-                        <span className="text-sm text-muted-foreground">
+                      <td className="py-4 px-4 text-right">
+                        <span className="text-muted-foreground font-mono text-xs">
                           {formatCurrency(invoice.tax)}
                         </span>
                       </td>
-                      <td className="py-3 px-4 text-center">
-                        <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            invoice.status === "Approved"
-                              ? "bg-green-100 text-green-700"
-                              : invoice.status === "Pending"
-                                ? "bg-amber-100 text-amber-700"
-                                : "bg-red-100 text-red-700"
-                          }`}
-                        >
+                      <td className="py-4 px-4 text-center">
+                        <Badge variant="outline" className={`${invoice.status === "Approved" ? "bg-green-50 text-green-700 border-green-200" :
+                            invoice.status === "Pending" ? "bg-amber-50 text-amber-700 border-amber-200" :
+                              "bg-red-50 text-red-700 border-red-200"
+                          }`}>
                           {invoice.status}
-                        </span>
+                        </Badge>
                       </td>
-                      <td className="py-3 px-4 text-center">
+                      <td className="py-4 px-4 text-center">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
                               <MoreHorizontal className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem>
                               <Eye className="h-4 w-4 mr-2" />
-                              View Details
+                              View
                             </DropdownMenuItem>
                             <DropdownMenuItem>
                               <Pencil className="h-4 w-4 mr-2" />
@@ -440,9 +410,9 @@ export default function InvoicesPage() {
                             </DropdownMenuItem>
                             <DropdownMenuItem>
                               <Download className="h-4 w-4 mr-2" />
-                              Download PDF
+                              Download
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="text-red-600">
+                            <DropdownMenuItem className="text-destructive focus:text-destructive">
                               <Trash2 className="h-4 w-4 mr-2" />
                               Delete
                             </DropdownMenuItem>
@@ -456,23 +426,19 @@ export default function InvoicesPage() {
             </div>
 
             {/* Pagination */}
-            <div className="flex items-center justify-between px-4 py-3 border-t border-border">
+            <div className="flex items-center justify-between px-4 py-4 border-t border-border bg-muted/10">
               <p className="text-sm text-muted-foreground">
-                Showing {filteredInvoices.length} of {invoices.length} invoices
+                Showing <span className="font-medium text-foreground">{filteredInvoices.length}</span> of <span className="font-medium text-foreground">{invoices.length}</span> invoices
               </p>
               <div className="flex items-center gap-2">
                 <Button variant="outline" size="sm" disabled>
                   Previous
                 </Button>
-                <Button variant="outline" size="sm" className="bg-primary text-primary-foreground">
-                  1
-                </Button>
-                <Button variant="outline" size="sm">
-                  2
-                </Button>
-                <Button variant="outline" size="sm">
-                  3
-                </Button>
+                <div className="flex items-center gap-1">
+                  <Button variant="secondary" size="sm" className="h-8 w-8 p-0">1</Button>
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">2</Button>
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">3</Button>
+                </div>
                 <Button variant="outline" size="sm">
                   Next
                 </Button>
@@ -480,7 +446,7 @@ export default function InvoicesPage() {
             </div>
           </CardContent>
         </Card>
-      </div>
+      </main>
     </div>
   );
 }
