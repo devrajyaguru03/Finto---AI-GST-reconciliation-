@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -37,19 +38,7 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/lib/auth-context";
 
-const mainNavItems = [
-  {
-    title: "New Client",
-    url: "/dashboard/clients?new=true",
-    icon: Plus,
-    isHero: true,
-  },
-  {
-    title: "GSTIN List",
-    url: "/dashboard/clients",
-    icon: Building2,
-  },
-];
+
 
 const settingsNavItems = [
   {
@@ -69,6 +58,23 @@ export function AppSidebar() {
   const router = useRouter();
   const { user, logout } = useAuth();
   const { isMobile } = useSidebar();
+  const [clients, setClients] = React.useState<any[]>([]);
+
+  React.useEffect(() => {
+    const fetchClients = async () => {
+      try {
+        const API = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+        const res = await fetch(`${API}/api/manage-clients/`);
+        if (res.ok) {
+          const data = await res.json();
+          setClients(data);
+        }
+      } catch (e) {
+        console.error("Failed to fetch clients", e);
+      }
+    };
+    fetchClients();
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -106,22 +112,42 @@ export function AppSidebar() {
           <SidebarGroupLabel>Platform</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {mainNavItems.map((item) => {
-                const isActive = pathname === item.url || pathname.startsWith(`${item.url}/`);
+              {/* New Client Button */}
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={pathname === "/dashboard/clients?new=true"}
+                  tooltip="New Client"
+                  className={cn(
+                    "transition-all duration-200",
+                    pathname === "/dashboard/clients?new=true" ? "bg-primary/10 text-primary font-medium" : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <Link href="/dashboard/clients?new=true">
+                    <Plus className={cn("size-4")} />
+                    <span>New Client</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
+              {/* Dynamic Client List */}
+              {clients.map((client) => {
+                const clientUrl = `/dashboard/clients/${client.id}/reconcile`;
+                const isActive = pathname.startsWith(clientUrl);
                 return (
-                  <SidebarMenuItem key={item.title}>
+                  <SidebarMenuItem key={client.id}>
                     <SidebarMenuButton
                       asChild
                       isActive={isActive}
-                      tooltip={item.title}
+                      tooltip={client.name}
                       className={cn(
                         "transition-all duration-200",
                         isActive ? "bg-primary/10 text-primary font-medium" : "text-muted-foreground hover:text-foreground"
                       )}
                     >
-                      <Link href={item.url}>
-                        <item.icon className={cn("size-4", isActive && "text-primary")} />
-                        <span>{item.title}</span>
+                      <Link href={clientUrl}>
+                        <Building2 className={cn("size-4", isActive && "text-primary")} />
+                        <span>{client.name}</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
