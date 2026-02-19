@@ -12,6 +12,7 @@ import {
   LogOut,
   User,
   ChevronUp,
+  Plus,
 } from "lucide-react";
 import {
   Sidebar,
@@ -38,9 +39,9 @@ import { useAuth } from "@/lib/auth-context";
 
 const mainNavItems = [
   {
-    title: "Reconciliation",
-    url: "/dashboard/reconciliation",
-    icon: ArrowLeftRight,
+    title: "New Client",
+    url: "/dashboard/clients?new=true",
+    icon: Plus,
     isHero: true,
   },
   {

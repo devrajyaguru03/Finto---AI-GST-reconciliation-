@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { AppHeader } from "@/components/app-header";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -91,9 +92,17 @@ export default function ClientsPage() {
     }
   }, []);
 
+  const searchParams = useSearchParams();
+
   useEffect(() => {
     fetchClients();
   }, [fetchClients]);
+
+  useEffect(() => {
+    if (searchParams.get("new") === "true") {
+      setShowAddDialog(true);
+    }
+  }, [searchParams]);
 
   const handleAddClient = async () => {
     if (!formData.name.trim()) {
