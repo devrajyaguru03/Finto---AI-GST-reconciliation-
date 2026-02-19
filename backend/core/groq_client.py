@@ -46,6 +46,32 @@ Always be:
 
 Format responses in a clear, structured manner. Use bullet points for action items."""
     
+    async def chat_with_agent(self, message: str, history: List[Dict] = None) -> str:
+        """
+        Chat with the AI agent as a GST expert.
+        """
+        if history is None:
+            history = []
+            
+        messages = [{"role": "system", "content": self._create_system_prompt()}]
+        
+        # Add history
+        for msg in history:
+            messages.append({"role": msg["role"], "content": msg["content"]})
+            
+        # Add current message
+        messages.append({"role": "user", "content": message})
+        
+        try:
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=messages,
+                temperature=0.7,
+                max_tokens=800
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            return f"I'm sorry, I encountered an error: {str(e)}"
     async def explain_discrepancy(
         self, 
         pr_invoice: Dict, 

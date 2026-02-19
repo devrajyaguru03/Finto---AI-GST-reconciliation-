@@ -11,8 +11,29 @@ from models.schemas import (
 from services.supabase_service import get_supabase_service, SupabaseService
 from core.groq_client import get_groq_client, GroqClient
 
+from pydantic import BaseModel
 
 router = APIRouter()
+
+class ChatRequest(BaseModel):
+    message: str
+    history: List[dict] = []
+
+
+@router.post("/chat")
+async def chat_with_agent(
+    request: ChatRequest,
+    groq: GroqClient = Depends(get_groq_client)
+):
+    """
+    Chat with the AI agent.
+    """
+    try:
+        response = await groq.chat_with_agent(request.message, request.history)
+        return {"response": response}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 
 @router.post("/explain", response_model=AIExplanationResponse)

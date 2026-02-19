@@ -42,11 +42,6 @@ import { useAuth } from "@/lib/auth-context";
 
 const settingsNavItems = [
   {
-    title: "Preferences",
-    url: "/dashboard/preferences",
-    icon: Settings,
-  },
-  {
     title: "Support",
     url: "/dashboard/support",
     icon: HelpCircle,
