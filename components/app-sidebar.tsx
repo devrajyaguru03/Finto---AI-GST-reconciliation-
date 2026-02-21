@@ -127,7 +127,7 @@ export function AppSidebar() {
 
               {/* Dynamic Client List */}
               {clients.map((client) => {
-                const clientUrl = `/dashboard/clients/${client.id}/reconcile`;
+                const clientUrl = `/dashboard/clients/${client.id}`;
                 const isActive = pathname.startsWith(clientUrl);
                 return (
                   <SidebarMenuItem key={client.id}>

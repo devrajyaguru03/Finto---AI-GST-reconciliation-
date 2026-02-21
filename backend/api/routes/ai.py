@@ -234,3 +234,78 @@ async def summarize_reconciliation(
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/client-risk/{client_id}")
+async def get_client_risk_analysis(
+    client_id: str,
+    supabase: SupabaseService = Depends(get_supabase_service),
+    groq: GroqClient = Depends(get_groq_client)
+):
+    """
+    Generate an AI risk analysis for a client based on their reconciliation history.
+    """
+    try:
+        # Get client details
+        client = await supabase.get_client(client_id)
+        if not client:
+            raise HTTPException(status_code=404, detail="Client not found")
+            
+        # Get all reconciliation runs for this client
+        runs = await supabase.get_runs_for_client(client_id)
+        
+        # Calculate stats
+        total_runs = len(runs)
+        if total_runs == 0:
+            return {
+                "client_id": client_id,
+                "client_name": client.get("name"),
+                "analysis": "No reconciliation history available for this client yet. Cannot generate risk analysis.",
+                "stats": {"total_runs": 0}
+            }
+            
+        total_match_rate = 0
+        total_discrepancies = 0
+        max_mismatch = 0
+        
+        for run in runs:
+            matched = run.get("matched_count", 0)
+            total = run.get("total_pr_invoices", 0)
+            if total > 0:
+                total_match_rate += (matched / total) * 100
+                
+            mismatches = run.get("mismatch_count", 0)
+            pr_only = run.get("pr_only_count", 0)
+            gstr2b_only = run.get("gstr2b_only_count", 0)
+            
+            run_discrepancies = mismatches + pr_only + gstr2b_only
+            total_discrepancies += run_discrepancies
+            
+            if mismatches > max_mismatch:
+                max_mismatch = mismatches
+                
+        stats = {
+            "total_runs": total_runs,
+            "avg_match_rate": total_match_rate / total_runs if total_runs > 0 else 0,
+            "total_discrepancies": total_discrepancies,
+            "avg_discrepancies": total_discrepancies / total_runs if total_runs > 0 else 0,
+            "max_mismatch": max_mismatch,
+            "most_common_issue": "Needs detailed review" # Simplification for now
+        }
+        
+        analysis = await groq.analyze_client_risk(
+            client_name=client.get("name", "Unknown Client"),
+            stats=stats
+        )
+        
+        return {
+            "client_id": client_id,
+            "client_name": client.get("name", "Unknown Client"),
+            "analysis": analysis,
+            "stats": stats
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+

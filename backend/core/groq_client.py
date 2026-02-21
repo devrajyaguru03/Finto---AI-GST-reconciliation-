@@ -273,6 +273,47 @@ Be concise and focus on actionable insights for the CA."""
             return f"Reconciliation completed with {stats.get('match_rate', 0):.1f}% match rate. {stats.get('discrepancies', 0)} discrepancies require review."
 
 
+    async def analyze_client_risk(
+        self,
+        client_name: str,
+        stats: Dict
+    ) -> str:
+        """
+        Generate a detailed AI risk analysis based on client reconciliation history.
+        """
+        prompt = f"""Conduct a detailed risk analysis for the GST client: {client_name} based on their historical reconciliation data.
+
+Historical Reconciliation Statistics:
+- Total Reconciliations Run: {stats.get('total_runs', 0)}
+- Average Match Rate: {stats.get('avg_match_rate', 0):.1f}%
+- Total Discrepancies Found: {stats.get('total_discrepancies', 0)}
+- Average Discrepancies per Run: {stats.get('avg_discrepancies', 0):.1f}
+- Highest Mismatch Count in a Run: {stats.get('max_mismatch', 0)}
+- Most Common Issue: {stats.get('most_common_issue', 'Data Entry Errors')}
+
+As an expert GST Consultant, provide a professional, structured overview of their tax compliance risk. Include:
+1. Overall Risk Profile (Low/Medium/High) and why.
+2. Key areas of concern based on the statistics.
+3. Recommendations to improve their match rate and ITC claim eligibility.
+
+Respond comprehensively but directly, suitable for a dashboard display. Keep formatting extremely clean using markdown."""
+        
+        try:
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": self._create_system_prompt()},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.4,
+                max_tokens=600
+            )
+            
+            return response.choices[0].message.content
+            
+        except Exception as e:
+            return f"Unable to generate risk analysis due to an error: {str(e)}"
+
 # Singleton instance
 _groq_client: Optional[GroqClient] = None
 
