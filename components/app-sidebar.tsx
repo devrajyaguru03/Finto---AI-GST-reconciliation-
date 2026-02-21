@@ -14,6 +14,7 @@ import {
   User,
   ChevronUp,
   Plus,
+  CalendarArrowUp,
 } from "lucide-react";
 import {
   Sidebar,
@@ -26,6 +27,9 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
   SidebarRail,
   useSidebar,
 } from "@/components/ui/sidebar";
@@ -129,6 +133,8 @@ export function AppSidebar() {
               {clients.map((client) => {
                 const clientUrl = `/dashboard/clients/${client.id}`;
                 const isActive = pathname.startsWith(clientUrl);
+                const month = client.pending_month || "Next Month";
+                const reconcileUrl = `/dashboard/clients/${client.id}/reconcile?month=${encodeURIComponent(month)}`;
                 return (
                   <SidebarMenuItem key={client.id}>
                     <SidebarMenuButton
@@ -145,6 +151,23 @@ export function AppSidebar() {
                         <span>{client.name}</span>
                       </Link>
                     </SidebarMenuButton>
+
+                    {/* Quick Reconcile Sub-Action */}
+                    {isActive && (
+                      <SidebarMenuSub>
+                        <SidebarMenuSubItem>
+                          <SidebarMenuSubButton
+                            asChild
+                            className="text-primary hover:text-primary hover:bg-primary/10 font-medium"
+                          >
+                            <Link href={reconcileUrl}>
+                              <CalendarArrowUp className="size-3.5" />
+                              <span>Reconcile {month}</span>
+                            </Link>
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      </SidebarMenuSub>
+                    )}
                   </SidebarMenuItem>
                 );
               })}
