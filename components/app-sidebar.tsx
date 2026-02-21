@@ -111,14 +111,14 @@ export function AppSidebar() {
               <SidebarMenuItem>
                 <SidebarMenuButton
                   asChild
-                  isActive={pathname === "/dashboard/clients?new=true"}
+                  isActive={pathname === "/dashboard/clients"}
                   tooltip="New Client"
                   className={cn(
                     "transition-all duration-200",
-                    pathname === "/dashboard/clients?new=true" ? "bg-primary/10 text-primary font-medium" : "text-muted-foreground hover:text-foreground"
+                    pathname === "/dashboard/clients" ? "bg-primary/10 text-primary font-medium" : "text-muted-foreground hover:text-foreground"
                   )}
                 >
-                  <Link href="/dashboard/clients?new=true">
+                  <Link href="/dashboard/clients">
                     <Plus className={cn("size-4")} />
                     <span>New Client</span>
                   </Link>
