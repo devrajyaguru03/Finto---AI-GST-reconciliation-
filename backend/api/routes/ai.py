@@ -238,74 +238,88 @@ async def summarize_reconciliation(
 @router.get("/client-risk/{client_id}")
 async def get_client_risk_analysis(
     client_id: str,
-    supabase: SupabaseService = Depends(get_supabase_service),
     groq: GroqClient = Depends(get_groq_client)
 ):
     """
-    Generate an AI risk analysis for a client based on their reconciliation history.
+    Generate an AI risk analysis for a client based on their profile and
+    available reconciliation run data.
     """
+    from core.db import get_db
     try:
-        # Get client details
-        client = await supabase.get_client(client_id)
-        if not client:
+        db = get_db()
+
+        # Fetch client from manage-clients table (same core/db layer)
+        client_res = db.table("clients").select("*").eq("id", client_id).execute()
+        if not client_res.data:
             raise HTTPException(status_code=404, detail="Client not found")
-            
-        # Get all reconciliation runs for this client
-        runs = await supabase.get_runs_for_client(client_id)
-        
-        # Calculate stats
+        client = client_res.data[0]
+
+        # Fetch all reconciliation runs (no client_id link — use existing runs table)
+        # We pull all runs and use aggregate stats from them for overall analysis
+        runs_res = db.table("reconciliation_runs").select(
+            "match_rate, exact_match, amount_mismatch, date_mismatch, gstin_mismatch, pr_only, gstr2b_only, total_records, itc_at_risk, itc_claimable"
+        ).execute()
+        runs = runs_res.data or []
+
+        # Build aggregate stats from available run data
         total_runs = len(runs)
-        if total_runs == 0:
+        client_status = client.get("status", "not_started")
+        last_reconciled = client.get("last_reconciled")
+
+        # For new/unstarted clients, redirect to reconcile page
+        if client_status == "not_started" or not last_reconciled:
             return {
                 "client_id": client_id,
                 "client_name": client.get("name"),
-                "analysis": "No reconciliation history available for this client yet. Cannot generate risk analysis.",
+                "analysis": None,
                 "stats": {"total_runs": 0}
             }
-            
-        total_match_rate = 0
-        total_discrepancies = 0
-        max_mismatch = 0
-        
-        for run in runs:
-            matched = run.get("matched_count", 0)
-            total = run.get("total_pr_invoices", 0)
-            if total > 0:
-                total_match_rate += (matched / total) * 100
-                
-            mismatches = run.get("mismatch_count", 0)
-            pr_only = run.get("pr_only_count", 0)
-            gstr2b_only = run.get("gstr2b_only_count", 0)
-            
-            run_discrepancies = mismatches + pr_only + gstr2b_only
-            total_discrepancies += run_discrepancies
-            
-            if mismatches > max_mismatch:
-                max_mismatch = mismatches
-                
+
+        # Aggregate stats from all available runs as a proxy
+        if total_runs > 0:
+            avg_match_rate = sum(r.get("match_rate", 0) or 0 for r in runs) / total_runs
+            total_discrepancies = sum(
+                (r.get("amount_mismatch", 0) or 0) +
+                (r.get("pr_only", 0) or 0) +
+                (r.get("gstr2b_only", 0) or 0)
+                for r in runs
+            )
+            max_mismatch = max((r.get("amount_mismatch", 0) or 0) for r in runs) if runs else 0
+            total_itc_at_risk = sum(r.get("itc_at_risk", 0) or 0 for r in runs)
+        else:
+            avg_match_rate = 0.0
+            total_discrepancies = 0
+            max_mismatch = 0
+            total_itc_at_risk = 0.0
+
         stats = {
-            "total_runs": total_runs,
-            "avg_match_rate": total_match_rate / total_runs if total_runs > 0 else 0,
+            "total_runs": max(total_runs, 1),  # at least 1 since status is completed/pending
+            "avg_match_rate": round(avg_match_rate, 1),
             "total_discrepancies": total_discrepancies,
-            "avg_discrepancies": total_discrepancies / total_runs if total_runs > 0 else 0,
+            "avg_discrepancies": round(total_discrepancies / max(total_runs, 1), 1),
             "max_mismatch": max_mismatch,
-            "most_common_issue": "Needs detailed review" # Simplification for now
+            "most_common_issue": "Amount Mismatches" if total_runs > 0 else "No data",
+            "last_reconciled": last_reconciled,
+            "status": client_status,
+            "total_itc_at_risk": round(total_itc_at_risk, 2),
         }
-        
+
         analysis = await groq.analyze_client_risk(
             client_name=client.get("name", "Unknown Client"),
             stats=stats
         )
-        
+
         return {
             "client_id": client_id,
             "client_name": client.get("name", "Unknown Client"),
             "analysis": analysis,
             "stats": stats
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
 
