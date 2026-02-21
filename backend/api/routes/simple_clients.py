@@ -80,3 +80,36 @@ async def delete_client(client_id: str, authorization: Optional[str] = Header(No
         raise HTTPException(status_code=404, detail="Client not found")
 
     return {"success": True, "message": "Client deleted"}
+
+
+class ClientUpdateRequest(BaseModel):
+    name: Optional[str] = None
+    email: Optional[str] = None
+    gstin: Optional[str] = None
+
+
+@router.patch("/{client_id}")
+async def update_client(
+    client_id: str,
+    data: ClientUpdateRequest,
+    authorization: Optional[str] = Header(None),
+):
+    """Update client details (name, email, gstin)"""
+    db = get_db()
+
+    update_data = {}
+    if data.name is not None:
+        update_data["name"] = data.name.strip()
+    if data.email is not None:
+        update_data["email"] = data.email.strip() or None
+    if data.gstin is not None:
+        update_data["gstin"] = data.gstin.strip().upper() or None
+
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No fields to update")
+
+    result = db.table("clients").update(update_data).eq("id", client_id).execute()
+    if not result.data:
+        raise HTTPException(status_code=404, detail="Client not found")
+
+    return result.data[0]
