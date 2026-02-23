@@ -1,19 +1,32 @@
 "use client";
 
 import { useParams, useSearchParams, useRouter } from "next/navigation";
-import { Suspense } from "react";
+import { useState, useMemo, Suspense } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, FileText, Shield, ArrowLeft } from "lucide-react";
+import { ArrowRight, FileText, Shield, ArrowLeft, Calendar, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
 
-const clientsData: Record<string, { name: string; gstin: string }> = {
-  "1": { name: "ABC Traders", gstin: "24ABCDE1234F1Z5" },
-  "2": { name: "Shree Metals Pvt Ltd", gstin: "27FGHIJ5678K2L6" },
-  "3": { name: "Global Tech Solutions", gstin: "29MNOPQ9012R3S7" },
-  "4": { name: "Sunrise Industries", gstin: "33TUVWX3456Y4Z8" },
-  "5": { name: "Bharat Enterprises", gstin: "07ABCDE7890F5G9" },
-};
+function generateMonthOptions() {
+  const months: { label: string; value: string; shortLabel: string; year: number; monthIndex: number }[] = [];
+  const now = new Date();
+
+  for (let i = 0; i < 12; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const label = d.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+    const shortLabel = d.toLocaleDateString("en-US", { month: "short" });
+    months.push({
+      label,
+      value: label,
+      shortLabel,
+      year: d.getFullYear(),
+      monthIndex: d.getMonth(),
+    });
+  }
+
+  return months;
+}
 
 function ReconcileContent() {
   const params = useParams();
@@ -21,11 +34,36 @@ function ReconcileContent() {
   const router = useRouter();
 
   const clientId = params.clientId as string;
-  const month = searchParams.get("month") || "July 2024";
-  const client = clientsData[clientId] || { name: "Unknown Client", gstin: "N/A" };
+  const currentMonth = new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" });
+  const initialMonth = searchParams.get("month") || currentMonth;
+
+  const monthOptions = useMemo(() => generateMonthOptions(), []);
+  const [selectedMonth, setSelectedMonth] = useState(initialMonth);
+
+  // Group months by year for the picker
+  const groupedByYear = useMemo(() => {
+    const groups: Record<number, typeof monthOptions> = {};
+    monthOptions.forEach((m) => {
+      if (!groups[m.year]) groups[m.year] = [];
+      groups[m.year].push(m);
+    });
+    return groups;
+  }, [monthOptions]);
+
+  const years = useMemo(() => Object.keys(groupedByYear).map(Number).sort((a, b) => b - a), [groupedByYear]);
+  const [activeYearIndex, setActiveYearIndex] = useState(0);
+  const activeYear = years[activeYearIndex];
+
+  const handleMonthSelect = (monthValue: string) => {
+    setSelectedMonth(monthValue);
+    // Update URL without full navigation
+    const url = new URL(window.location.href);
+    url.searchParams.set("month", monthValue);
+    window.history.replaceState({}, "", url.toString());
+  };
 
   const handleContinue = () => {
-    router.push(`/dashboard/clients/${clientId}/reconcile/upload?month=${encodeURIComponent(month)}`);
+    router.push(`/dashboard/clients/${clientId}/reconcile/upload?month=${encodeURIComponent(selectedMonth)}`);
   };
 
   return (
@@ -40,7 +78,7 @@ function ReconcileContent() {
       </Link>
 
       {/* Main Card */}
-      <Card className="border-border">
+      <Card className="border-border overflow-hidden">
         <CardContent className="p-8">
           {/* Header */}
           <div className="text-center mb-8">
@@ -48,14 +86,89 @@ function ReconcileContent() {
               <FileText className="h-8 w-8 text-primary" />
             </div>
             <h1 className="text-2xl font-bold text-foreground mb-2">
-              GST Reconciliation - {month}
+              GST Reconciliation
             </h1>
             <p className="text-muted-foreground">
-              Client: <span className="font-medium text-foreground">{client.name}</span>
+              Select a return period and start reconciling
             </p>
-            <p className="text-sm text-muted-foreground font-mono mt-1">
-              GSTIN: {client.gstin}
-            </p>
+          </div>
+
+          {/* ── Premium Month Picker ── */}
+          <div className="mb-8">
+            <div className="flex items-center gap-2 mb-4">
+              <Calendar className="h-4 w-4 text-primary" />
+              <span className="text-sm font-semibold text-foreground tracking-wide uppercase">
+                Select Return Period
+              </span>
+            </div>
+
+            {/* Year Navigator */}
+            {years.length > 1 && (
+              <div className="flex items-center justify-center gap-3 mb-4">
+                <button
+                  onClick={() => setActiveYearIndex((i) => Math.min(i + 1, years.length - 1))}
+                  disabled={activeYearIndex === years.length - 1}
+                  className="p-1.5 rounded-lg hover:bg-muted transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <span className="text-sm font-bold text-foreground min-w-[60px] text-center tabular-nums">
+                  {activeYear}
+                </span>
+                <button
+                  onClick={() => setActiveYearIndex((i) => Math.max(i - 1, 0))}
+                  disabled={activeYearIndex === 0}
+                  className="p-1.5 rounded-lg hover:bg-muted transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+            )}
+
+            {/* Month Grid */}
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+              {groupedByYear[activeYear]?.map((m) => {
+                const isSelected = selectedMonth === m.value;
+                const isCurrent = m.value === currentMonth;
+
+                return (
+                  <button
+                    key={m.value}
+                    onClick={() => handleMonthSelect(m.value)}
+                    className={cn(
+                      "relative group px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 border",
+                      "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
+                      isSelected
+                        ? "bg-gradient-to-br from-primary to-primary/80 text-white border-primary shadow-lg shadow-primary/25 scale-[1.02]"
+                        : "bg-background hover:bg-muted/80 text-foreground border-border/60 hover:border-primary/40 hover:shadow-sm"
+                    )}
+                  >
+                    <span className="block text-[13px] font-semibold">{m.shortLabel}</span>
+                    {isCurrent && !isSelected && (
+                      <span className="block text-[10px] text-primary font-medium mt-0.5">
+                        Current
+                      </span>
+                    )}
+                    {isSelected && (
+                      <span className="block text-[10px] text-white/80 font-medium mt-0.5">
+                        Selected
+                      </span>
+                    )}
+                    {/* Glow effect for selected */}
+                    {isSelected && (
+                      <div className="absolute inset-0 rounded-xl bg-primary/20 blur-md -z-10" />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Selected Period Display */}
+            <div className="mt-4 flex items-center justify-center gap-2 bg-muted/40 rounded-lg py-2.5 px-4 border border-border/40">
+              <Calendar className="h-4 w-4 text-primary" />
+              <span className="text-sm text-muted-foreground">Return Period:</span>
+              <span className="text-sm font-bold text-foreground">{selectedMonth}</span>
+            </div>
           </div>
 
           {/* Description */}
@@ -101,7 +214,7 @@ function ReconcileContent() {
 
           {/* CTA */}
           <Button onClick={handleContinue} className="w-full" size="lg">
-            Continue
+            Continue with {selectedMonth}
             <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
 

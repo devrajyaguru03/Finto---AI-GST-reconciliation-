@@ -29,7 +29,7 @@ function ProcessingContent() {
   const router = useRouter();
 
   const clientId = params.clientId as string;
-  const month = searchParams.get("month") || "July 2024";
+  const month = searchParams.get("month") || new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" });
   const client = clientsData[clientId] || { name: "Unknown Client", gstin: "N/A" };
 
   const [currentStep, setCurrentStep] = useState(0);

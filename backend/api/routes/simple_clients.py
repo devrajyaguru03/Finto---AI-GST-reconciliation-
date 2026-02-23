@@ -5,6 +5,7 @@ List, create, and delete clients stored in Supabase 'clients' table
 from fastapi import APIRouter, HTTPException, Header, Request
 from pydantic import BaseModel
 from typing import Optional
+from datetime import datetime
 from core.db import get_db
 
 router = APIRouter()
@@ -46,7 +47,7 @@ async def create_client(
         "email": data.email,
         "gstin": data.gstin,
         "status": "not_started",
-        "pending_month": "July 2024",
+        "pending_month": datetime.now().strftime("%B %Y"),
         "created_by": user_email,
     }
 

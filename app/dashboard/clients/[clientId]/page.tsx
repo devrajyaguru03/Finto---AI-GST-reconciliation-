@@ -67,7 +67,7 @@ export default function ClientDashboardPage() {
 
                 // Conditional Routing based on History
                 if (riskData.stats.total_runs === 0) {
-                    const month = clientInfo?.pending_month || "July 2024";
+                    const month = clientInfo?.pending_month || new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" });
                     router.replace(`/dashboard/clients/${clientId}/reconcile?month=${encodeURIComponent(month)}`);
                 } else {
                     setData(riskData);

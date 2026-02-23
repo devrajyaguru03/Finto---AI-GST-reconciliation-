@@ -20,7 +20,7 @@ function CompleteContent() {
   const searchParams = useSearchParams();
 
   const clientId = params.clientId as string;
-  const month = searchParams.get("month") || "July 2024";
+  const month = searchParams.get("month") || new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" });
   const sent = searchParams.get("sent") === "true";
   const client = clientsData[clientId] || { name: "Unknown Client", gstin: "N/A" };
 

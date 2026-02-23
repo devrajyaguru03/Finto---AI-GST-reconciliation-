@@ -48,7 +48,7 @@ export default function ClientsPage() {
 
       if (res.ok) {
         const newClient = await res.json();
-        const nextMonth = newClient.pending_month || "July 2024";
+        const nextMonth = newClient.pending_month || new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" });
         // Force a reload to update the sidebar's client list and navigate to the new client
         window.location.href = `/dashboard/clients/${newClient.id}/reconcile?month=${encodeURIComponent(nextMonth)}`;
       } else {
