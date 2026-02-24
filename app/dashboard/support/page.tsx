@@ -28,16 +28,9 @@ import {
   MessageCircle,
   HelpCircle,
   FileText,
-  Video,
-  BookOpen,
   ExternalLink,
   Send,
-  Clock,
-  CheckCircle,
-  AlertCircle,
   ChevronRight,
-  Headphones,
-  Building2,
   LifeBuoy,
 } from "lucide-react";
 
@@ -290,27 +283,6 @@ export default function SupportPage() {
               </CardContent>
             </Card>
 
-            {/* Resources Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {[
-                { icon: BookOpen, title: "User Guide", desc: "Documentation", color: "text-blue-600", bg: "bg-blue-100" },
-                { icon: Video, title: "Video Tutorials", desc: "Step-by-step guides", color: "text-red-600", bg: "bg-red-100" },
-                { icon: FileText, title: "GST Guidelines", desc: "Latest updates", color: "text-green-600", bg: "bg-green-100" },
-                { icon: Headphones, title: "Webinars", desc: "Live sessions", color: "text-purple-600", bg: "bg-purple-100" },
-              ].map((item, i) => (
-                <Card key={i} className="hover:shadow-md transition-shadow cursor-pointer group">
-                  <CardContent className="p-4 flex items-center gap-4">
-                    <div className={`p-3 rounded-lg ${item.bg} group-hover:scale-110 transition-transform`}>
-                      <item.icon className={`h-6 w-6 ${item.color}`} />
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-foreground">{item.title}</h4>
-                      <p className="text-sm text-muted-foreground">{item.desc}</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
           </div>
 
           {/* Right Column - Forms & Tickets */}
@@ -397,8 +369,8 @@ export default function SupportPage() {
                       <div className="flex items-center justify-between mb-2">
                         <span className="font-mono text-xs text-muted-foreground">{ticket.id}</span>
                         <Badge variant="outline" className={`text-[10px] px-1.5 h-5 ${ticket.status === "Open" ? "text-blue-600 border-blue-200 bg-blue-50" :
-                            ticket.status === "Resolved" ? "text-green-600 border-green-200 bg-green-50" :
-                              "text-amber-600 border-amber-200 bg-amber-50"
+                          ticket.status === "Resolved" ? "text-green-600 border-green-200 bg-green-50" :
+                            "text-amber-600 border-amber-200 bg-amber-50"
                           }`}>
                           {ticket.status}
                         </Badge>
