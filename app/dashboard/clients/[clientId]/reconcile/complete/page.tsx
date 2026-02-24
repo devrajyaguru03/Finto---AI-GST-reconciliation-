@@ -1,19 +1,11 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useMemo } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, ArrowRight, FileText, Users } from "lucide-react";
 import Link from "next/link";
-
-const clientsData: Record<string, { name: string; gstin: string }> = {
-  "1": { name: "ABC Traders", gstin: "24ABCDE1234F1Z5" },
-  "2": { name: "Shree Metals Pvt Ltd", gstin: "27FGHIJ5678K2L6" },
-  "3": { name: "Global Tech Solutions", gstin: "29MNOPQ9012R3S7" },
-  "4": { name: "Sunrise Industries", gstin: "33TUVWX3456Y4Z8" },
-  "5": { name: "Bharat Enterprises", gstin: "07ABCDE7890F5G9" },
-};
 
 function CompleteContent() {
   const params = useParams();
@@ -22,7 +14,11 @@ function CompleteContent() {
   const clientId = params.clientId as string;
   const month = searchParams.get("month") || new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" });
   const sent = searchParams.get("sent") === "true";
-  const client = clientsData[clientId] || { name: "Unknown Client", gstin: "N/A" };
+
+  // Read client name from sessionStorage
+  const clientName = typeof window !== "undefined"
+    ? sessionStorage.getItem(`client_name_${clientId}`) || "Client"
+    : "Client";
 
   return (
     <div className="max-w-xl mx-auto">
@@ -38,7 +34,7 @@ function CompleteContent() {
             {month} Reconciliation Completed
           </h1>
           <p className="text-muted-foreground mb-6">
-            {client.name}
+            {clientName}
           </p>
 
           {sent && (

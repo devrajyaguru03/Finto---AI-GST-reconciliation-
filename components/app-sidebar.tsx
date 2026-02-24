@@ -95,6 +95,12 @@ export function AppSidebar() {
       if (res.ok) {
         const data = await res.json();
         setClients(data);
+        // Store client names in sessionStorage for reconciliation pages
+        data.forEach((c: any) => {
+          if (c.id && c.name) {
+            sessionStorage.setItem(`client_name_${c.id}`, c.name);
+          }
+        });
       }
     } catch (e) {
       console.error("Failed to fetch clients", e);

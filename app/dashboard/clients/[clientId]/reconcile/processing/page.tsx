@@ -6,14 +6,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle2, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const clientsData: Record<string, { name: string; gstin: string }> = {
-  "1": { name: "ABC Traders", gstin: "24ABCDE1234F1Z5" },
-  "2": { name: "Shree Metals Pvt Ltd", gstin: "27FGHIJ5678K2L6" },
-  "3": { name: "Global Tech Solutions", gstin: "29MNOPQ9012R3S7" },
-  "4": { name: "Sunrise Industries", gstin: "33TUVWX3456Y4Z8" },
-  "5": { name: "Bharat Enterprises", gstin: "07ABCDE7890F5G9" },
-};
-
 const processingSteps = [
   "Reading Purchase Register",
   "Reading GSTR-2B",
@@ -30,7 +22,11 @@ function ProcessingContent() {
 
   const clientId = params.clientId as string;
   const month = searchParams.get("month") || new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" });
-  const client = clientsData[clientId] || { name: "Unknown Client", gstin: "N/A" };
+
+  // Get client name from sessionStorage
+  const clientName = typeof window !== "undefined"
+    ? sessionStorage.getItem(`client_name_${clientId}`) || "Client"
+    : "Client";
 
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
@@ -83,7 +79,7 @@ function ProcessingContent() {
               {isComplete ? "Processing Complete" : "Processing Your Data"}
             </h1>
             <p className="text-sm text-muted-foreground">
-              {client.name} - {month}
+              {clientName} - {month}
             </p>
           </div>
 
