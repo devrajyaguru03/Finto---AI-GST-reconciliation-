@@ -103,9 +103,15 @@ function UploadContent() {
       const formData = new FormData();
       formData.append("pr_file", purchaseRegisterFile);
       formData.append("gstr2b_file", gstr2bFile);
+      formData.append("client_id", clientId);
+
+      const token = localStorage.getItem("auth_token") || "";
 
       const res = await fetch(`${BACKEND_URL}/api/reconcile`, {
         method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
         body: formData,
       });
 

@@ -4,8 +4,9 @@ Accepts two file uploads, parses, reconciles, returns full results
 Now logs to Supabase for admin visibility
 """
 import uuid
-from fastapi import APIRouter, UploadFile, File, HTTPException, Header, Request
+from fastapi import APIRouter, UploadFile, File, HTTPException, Header, Request, Form
 from typing import List, Dict, Any, Optional
+from datetime import datetime, timezone
 
 from core.file_parser import get_file_parser
 from core.reconciliation_engine import ReconciliationEngine
@@ -19,6 +20,7 @@ router = APIRouter()
 async def reconcile_files(
     pr_file: UploadFile = File(..., description="Purchase Register file (Excel/CSV)"),
     gstr2b_file: UploadFile = File(..., description="GSTR-2B file (Excel/CSV)"),
+    client_id: Optional[str] = Form(None),
     authorization: Optional[str] = Header(None),
     request: Request = None
 ):
@@ -152,6 +154,17 @@ async def reconcile_files(
         }).execute()
     except Exception as e:
         print(f"⚠️ Supabase logging error: {e}")
+
+    # Update client status if client_id was provided
+    if client_id:
+        try:
+            db = get_db()
+            db.table("clients").update({
+                "status": "completed",
+                "last_reconciled": datetime.now(timezone.utc).isoformat(),
+            }).eq("id", client_id).execute()
+        except Exception as e:
+            print(f"⚠️ Client status update error: {e}")
 
     return {
         "success": True,
