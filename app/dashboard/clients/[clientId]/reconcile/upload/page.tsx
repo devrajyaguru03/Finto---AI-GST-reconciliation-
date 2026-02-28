@@ -118,7 +118,22 @@ function UploadContent() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.detail || "Reconciliation failed. Check your file formats.");
+        const errorMsg = data.detail || "Reconciliation failed. Check your file formats.";
+        setError(errorMsg);
+        setIsReconciling(false);
+        sessionStorage.removeItem(`reconcile_status_${clientId}`);
+        return;
+      }
+
+      // Check for parsing errors that blocked the reconciliation
+      const prErrors = data.parsing?.pr_errors || [];
+      const gstrErrors = data.parsing?.gstr2b_errors || [];
+      const criticalPrError = prErrors.find((e: { row: number, error: string }) => e.row === 0);
+      const criticalGstrError = gstrErrors.find((e: { row: number, error: string }) => e.row === 0);
+
+      if (criticalPrError || criticalGstrError) {
+        const errorMsg = criticalPrError?.error || criticalGstrError?.error || "Column mapping failed.";
+        setError(`File format error: ${errorMsg}`);
         setIsReconciling(false);
         sessionStorage.removeItem(`reconcile_status_${clientId}`);
         return;

@@ -266,8 +266,10 @@ async def get_client_risk_analysis(
         client_status = client.get("status", "not_started")
         last_reconciled = client.get("last_reconciled")
 
-        # For new/unstarted clients, redirect to reconcile page
-        if client_status == "not_started" or not last_reconciled:
+        # For new/unstarted clients, show empty state
+        # Show dashboard if: status is completed/pending OR last_reconciled is set
+        is_new_client = client_status == "not_started" and not last_reconciled
+        if is_new_client:
             return {
                 "client_id": client_id,
                 "client_name": client.get("name"),

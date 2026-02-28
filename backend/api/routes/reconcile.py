@@ -8,7 +8,7 @@ from fastapi import APIRouter, UploadFile, File, HTTPException, Header, Request,
 from typing import List, Dict, Any, Optional
 from datetime import datetime, timezone
 
-from core.file_parser import get_file_parser
+from core.file_parser import FileParser
 from core.reconciliation_engine import ReconciliationEngine
 from core.db import get_db
 
@@ -28,7 +28,7 @@ async def reconcile_files(
     Upload Purchase Register + GSTR-2B files, parse & reconcile in one step.
     Returns full results including stats, matched/mismatched invoices, and summary.
     """
-    parser = get_file_parser()
+    parser = FileParser()  # Fresh instance per request to avoid state leakage
     engine = ReconciliationEngine()
     
     try:
@@ -156,18 +156,30 @@ async def reconcile_files(
         print(f"⚠️ Supabase logging error: {e}")
 
     # Update client status if client_id was provided
+    client_update_success = False
+    client_update_error = None
     if client_id:
         try:
             db = get_db()
-            db.table("clients").update({
+            update_result = db.table("clients").update({
                 "status": "completed",
                 "last_reconciled": datetime.now(timezone.utc).isoformat(),
             }).eq("id", client_id).execute()
+            if update_result.data:
+                client_update_success = True
+                print(f"✅ Client {client_id} status updated to 'completed'")
+            else:
+                client_update_error = "Update returned no data — client_id may not exist in DB"
+                print(f"⚠️ Client status update returned no data for client_id: {client_id}")
         except Exception as e:
-            print(f"⚠️ Client status update error: {e}")
+            client_update_error = str(e)
+            print(f"⚠️ Client status update error for {client_id}: {e}")
 
     return {
         "success": True,
+        "client_id": client_id,
+        "client_update_success": client_update_success,
+        "client_update_error": client_update_error,
         "parsing": {
             "pr_file": pr_filename,
             "pr_invoices_parsed": len(pr_invoices),
