@@ -30,7 +30,6 @@ function ProcessingContent() {
 
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
-  const [isRedirecting, setIsRedirecting] = useState(false);
 
   useEffect(() => {
     if (currentStep >= processingSteps.length) return;
@@ -48,17 +47,20 @@ function ProcessingContent() {
     return () => clearInterval(interval);
   }, [currentStep]);
 
+  // Redirect to summary once all steps are complete
+  // NOTE: Only depends on currentStep — NOT isRedirecting, because putting
+  // isRedirecting in deps causes the timeout to be cancelled immediately
+  // (the cleanup from the previous effect run fires before the timeout executes).
   useEffect(() => {
-    if (currentStep === processingSteps.length && !isRedirecting) {
-      setIsRedirecting(true);
+    if (currentStep === processingSteps.length) {
       const timeout = setTimeout(() => {
         router.push(
           `/dashboard/clients/${clientId}/reconcile/summary?month=${encodeURIComponent(month)}`
         );
-      }, 1000);
+      }, 800);
       return () => clearTimeout(timeout);
     }
-  }, [currentStep, clientId, month, router, isRedirecting]);
+  }, [currentStep, clientId, month, router]);
 
   const isComplete = completedSteps.length === processingSteps.length;
 
