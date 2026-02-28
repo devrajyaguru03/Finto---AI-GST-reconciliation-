@@ -280,14 +280,21 @@ Be concise and focus on actionable insights for the CA."""
     ) -> str:
         """
         Generate a detailed AI risk analysis based on client reconciliation history.
+        Falls back to a computed local analysis if Groq API is unavailable.
         """
+        avg_match = stats.get('avg_match_rate', 0)
+        total_runs = stats.get('total_runs', 0)
+        total_disc = stats.get('total_discrepancies', 0)
+        avg_disc = stats.get('avg_discrepancies', 0)
+        itc_risk = stats.get('total_itc_at_risk', 0)
+
         prompt = f"""Conduct a detailed risk analysis for the GST client: {client_name} based on their historical reconciliation data.
 
 Historical Reconciliation Statistics:
-- Total Reconciliations Run: {stats.get('total_runs', 0)}
-- Average Match Rate: {stats.get('avg_match_rate', 0):.1f}%
-- Total Discrepancies Found: {stats.get('total_discrepancies', 0)}
-- Average Discrepancies per Run: {stats.get('avg_discrepancies', 0):.1f}
+- Total Reconciliations Run: {total_runs}
+- Average Match Rate: {avg_match:.1f}%
+- Total Discrepancies Found: {total_disc}
+- Average Discrepancies per Run: {avg_disc:.1f}
 - Highest Mismatch Count in a Run: {stats.get('max_mismatch', 0)}
 - Most Common Issue: {stats.get('most_common_issue', 'Data Entry Errors')}
 
@@ -297,22 +304,94 @@ As an expert GST Consultant, provide a professional, structured overview of thei
 3. Recommendations to improve their match rate and ITC claim eligibility.
 
 Respond comprehensively but directly, suitable for a dashboard display. Keep formatting extremely clean using markdown."""
-        
-        try:
-            response = self.client.chat.completions.create(
-                model=self.model,
-                messages=[
-                    {"role": "system", "content": self._create_system_prompt()},
-                    {"role": "user", "content": prompt}
-                ],
-                temperature=0.4,
-                max_tokens=600
-            )
-            
-            return response.choices[0].message.content
-            
-        except Exception as e:
-            return f"Unable to generate risk analysis due to an error: {str(e)}"
+
+        # Try Groq AI first
+        if self.client and getattr(self, '_api_key_valid', True):
+            try:
+                response = self.client.chat.completions.create(
+                    model=self.model,
+                    messages=[
+                        {"role": "system", "content": self._create_system_prompt()},
+                        {"role": "user", "content": prompt}
+                    ],
+                    temperature=0.4,
+                    max_tokens=600
+                )
+                return response.choices[0].message.content
+            except Exception as e:
+                error_str = str(e).lower()
+                # Mark API key invalid to skip future retries in this session
+                if "auth" in error_str or "api key" in error_str or "unauthorized" in error_str:
+                    self._api_key_valid = False
+                print(f"⚠️ Groq API error: {e} — switching to local analysis")
+
+        # Fallback: generate analysis locally based on stats
+        return self._local_risk_analysis(client_name, stats)
+
+    def _local_risk_analysis(self, client_name: str, stats: Dict) -> str:
+        """Generate a rule-based risk analysis when Groq is unavailable."""
+        avg_match = stats.get('avg_match_rate', 0)
+        total_runs = stats.get('total_runs', 0)
+        total_disc = stats.get('total_discrepancies', 0)
+        avg_disc = stats.get('avg_discrepancies', 0)
+        itc_risk = stats.get('total_itc_at_risk', 0)
+
+        if avg_match >= 85:
+            risk_level = "🟢 **Low Risk**"
+            risk_reason = f"with a strong average match rate of {avg_match:.1f}%, indicating well-maintained records and regular vendor follow-ups."
+        elif avg_match >= 65:
+            risk_level = "🟡 **Medium Risk**"
+            risk_reason = f"with an average match rate of {avg_match:.1f}%, suggesting room for improvement in invoice tracking and vendor communication."
+        else:
+            risk_level = "🔴 **High Risk**"
+            risk_reason = f"with a low average match rate of {avg_match:.1f}%, indicating significant gaps in invoice matching that require immediate attention."
+
+        concerns = []
+        if avg_match < 75:
+            concerns.append(f"- **Low Match Rate ({avg_match:.1f}%):** A large portion of invoices are not matching, putting ITC claims at risk.")
+        if avg_disc > 5:
+            concerns.append(f"- **High Discrepancy Count ({avg_disc:.1f}/run):** Frequent mismatches suggest systemic data entry or vendor filing issues.")
+        if itc_risk > 0:
+            concerns.append(f"- **ITC at Risk (₹{itc_risk:,.2f}):** Total ITC across all runs that may not be claimable due to mismatches.")
+        if not concerns:
+            concerns.append("- No major concerns detected based on current reconciliation data.")
+
+        recommendations = []
+        if avg_match < 85:
+            recommendations.append("- **Vendor Communication:** Send monthly reconciliation reports to all vendors with discrepancies to ensure timely GSTR-1 filings.")
+        if avg_disc > 3:
+            recommendations.append("- **Data Entry Review:** Implement a double-check process for invoice data entry to reduce internal errors.")
+        recommendations.append("- **Regular Reconciliation:** Run reconciliation monthly (not quarterly) to catch issues early and improve match rates.")
+        if avg_match < 70:
+            recommendations.append("- **GSTIN Verification:** Validate all vendor GSTINs before processing invoices to reduce invalid GSTIN mismatches.")
+
+        return f"""## Risk Profile: {risk_level}
+
+{client_name} is classified as **{risk_level.split("**")[1]}** {risk_reason}
+
+---
+
+### 📊 Key Statistics
+| Metric | Value |
+|---|---|
+| Total Reconciliations | {total_runs} |
+| Average Match Rate | {avg_match:.1f}% |
+| Total Discrepancies | {total_disc} |
+| Avg Discrepancies/Run | {avg_disc:.1f} |
+
+---
+
+### ⚠️ Areas of Concern
+{chr(10).join(concerns)}
+
+---
+
+### ✅ Recommendations
+{chr(10).join(recommendations)}
+
+---
+*Analysis generated from historical reconciliation data.*"""
+
 
 # Singleton instance
 _groq_client: Optional[GroqClient] = None
@@ -324,3 +403,4 @@ def get_groq_client() -> GroqClient:
     if _groq_client is None:
         _groq_client = GroqClient()
     return _groq_client
+
