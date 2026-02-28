@@ -54,3 +54,5 @@ Thumbs.db
 
 # Gemini AI
 .gemini/
+frontend.log
+backend.log

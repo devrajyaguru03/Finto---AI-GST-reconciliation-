@@ -87,33 +87,6 @@ const faqs = [
   },
 ];
 
-const supportTickets = [
-  {
-    id: "TKT-2023-089",
-    subject: "Unable to import Tally export file",
-    status: "Open",
-    priority: "High",
-    created: "Oct 28, 2023",
-    lastUpdate: "2 hours ago",
-  },
-  {
-    id: "TKT-2023-087",
-    subject: "Request for custom report format",
-    status: "In Progress",
-    priority: "Medium",
-    created: "Oct 26, 2023",
-    lastUpdate: "1 day ago",
-  },
-  {
-    id: "TKT-2023-082",
-    subject: "Question about ITC eligibility rules",
-    status: "Resolved",
-    priority: "Low",
-    created: "Oct 22, 2023",
-    lastUpdate: "Oct 24, 2023",
-  },
-];
-
 const problemCategories = [
   { value: "import", label: "Data Import Issues" },
   { value: "reconciliation", label: "Reconciliation Problems" },
@@ -354,37 +327,7 @@ export default function SupportPage() {
               </CardContent>
             </Card>
 
-            {/* My Tickets */}
-            <Card>
-              <CardHeader className="pb-3 border-b">
-                <CardTitle className="text-base font-semibold">Recent Tickets</CardTitle>
-              </CardHeader>
-              <CardContent className="pt-4">
-                <div className="space-y-3">
-                  {supportTickets.map((ticket) => (
-                    <div
-                      key={ticket.id}
-                      className="p-3 rounded-lg border border-border hover:bg-muted/50 transition-colors text-sm"
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="font-mono text-xs text-muted-foreground">{ticket.id}</span>
-                        <Badge variant="outline" className={`text-[10px] px-1.5 h-5 ${ticket.status === "Open" ? "text-blue-600 border-blue-200 bg-blue-50" :
-                          ticket.status === "Resolved" ? "text-green-600 border-green-200 bg-green-50" :
-                            "text-amber-600 border-amber-200 bg-amber-50"
-                          }`}>
-                          {ticket.status}
-                        </Badge>
-                      </div>
-                      <p className="font-medium text-foreground line-clamp-1 mb-1">{ticket.subject}</p>
-                      <span className="text-xs text-muted-foreground">{ticket.lastUpdate}</span>
-                    </div>
-                  ))}
-                </div>
-                <Button variant="link" className="w-full mt-2 h-auto p-0 text-primary">
-                  View All History
-                </Button>
-              </CardContent>
-            </Card>
+
           </div>
         </div>
       </main>
